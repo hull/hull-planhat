@@ -36,18 +36,39 @@ class PlanhatClient {
             responseType: "json"
         }
 
-        const axiosResponse = await axios.get(url, axiosConfig);
+        try {
+            const axiosResponse = await axios.get(url, axiosConfig);
         
-        const apiResult: IApiResultObject<IPlanhatContact> = {
-            data: axiosResponse.data,
-            endpoint: url,
-            error: axiosResponse.status >= 400 ? axiosResponse.statusText : undefined,
-            method: "query",
-            record: undefined,
-            success: axiosResponse.status < 400
-        };
+            const apiResult: IApiResultObject<IPlanhatContact> = {
+                data: axiosResponse.data,
+                endpoint: url,
+                error: axiosResponse.status >= 400 ? axiosResponse.statusText : undefined,
+                method: "query",
+                record: undefined,
+                success: axiosResponse.status < 400
+            };
 
         return apiResult;
+        } catch (error) {
+            const axiosResponse = (error as AxiosError).response;
+
+            const apiResult: IApiResultObject<IPlanhatContact> = {
+                data: undefined,
+                endpoint: url,
+                error: (error as AxiosError).message,
+                method: "query",
+                record: undefined,
+                success: false
+            };
+
+            if (axiosResponse !== undefined) {
+                apiResult.data = axiosResponse.data;
+                apiResult.error = [ (error as AxiosError).message, axiosResponse.statusText]
+            }
+
+            return apiResult;
+        }
+        
     }
 
     /**
@@ -97,7 +118,7 @@ class PlanhatClient {
                 apiResult.data = axiosResponse.data;
                 apiResult.error = [ (error as AxiosError).message, axiosResponse.statusText]
             }
-            
+
             return apiResult;
         }
         
@@ -120,18 +141,39 @@ class PlanhatClient {
             responseType: "json"
         }
 
-        const axiosResponse = await axios.put(url, data, axiosConfig);
+        try {
+            const axiosResponse = await axios.put(url, data, axiosConfig);
         
-        const apiResult: IApiResultObject<IPlanhatContact> = {
-            data: axiosResponse.data,
-            endpoint: url,
-            error: axiosResponse.status >= 400 ? axiosResponse.statusText : undefined,
-            method: "update",
-            record: data,
-            success: axiosResponse.status < 400
-        };
+            const apiResult: IApiResultObject<IPlanhatContact> = {
+                data: axiosResponse.data,
+                endpoint: url,
+                error: axiosResponse.status >= 400 ? axiosResponse.statusText : undefined,
+                method: "update",
+                record: data,
+                success: axiosResponse.status < 400
+            };
 
-        return apiResult;
+            return apiResult;
+        } catch (error) {
+            const axiosResponse = (error as AxiosError).response;
+
+            const apiResult: IApiResultObject<IPlanhatContact> = {
+                data: undefined,
+                endpoint: url,
+                error: (error as AxiosError).message,
+                method: "update",
+                record: data,
+                success: false
+            };
+
+            if (axiosResponse !== undefined) {
+                apiResult.data = axiosResponse.data;
+                apiResult.error = [ (error as AxiosError).message, axiosResponse.statusText]
+            }
+
+            return apiResult;
+        }
+        
     }
 
     /**
@@ -151,18 +193,39 @@ class PlanhatClient {
             responseType: "json"
         }
 
-        const axiosResponse = await axios.delete(url, axiosConfig);
+        try {
+            const axiosResponse = await axios.delete(url, axiosConfig);
         
-        const apiResult: IApiResultObject<IPlanhatContact> = {
-            data: axiosResponse.data,
-            endpoint: url,
-            error: axiosResponse.status >= 400 ? axiosResponse.statusText : undefined,
-            method: "delete",
-            record: undefined,
-            success: axiosResponse.status < 400
-        };
+            const apiResult: IApiResultObject<IPlanhatContact> = {
+                data: axiosResponse.data,
+                endpoint: url,
+                error: axiosResponse.status >= 400 ? axiosResponse.statusText : undefined,
+                method: "delete",
+                record: undefined,
+                success: axiosResponse.status < 400
+            };
 
-        return apiResult;
+            return apiResult;
+        } catch (error) {
+            const axiosResponse = (error as AxiosError).response;
+
+            const apiResult: IApiResultObject<IPlanhatContact> = {
+                data: undefined,
+                endpoint: url,
+                error: (error as AxiosError).message,
+                method: "delete",
+                record: undefined,
+                success: false
+            };
+
+            if (axiosResponse !== undefined) {
+                apiResult.data = axiosResponse.data;
+                apiResult.error = [ (error as AxiosError).message, axiosResponse.statusText]
+            }
+
+            return apiResult;
+        }
+        
     }
 
     /**
@@ -182,18 +245,39 @@ class PlanhatClient {
             responseType: "json"
         }
 
-        const axiosResponse = await axios.get(url, axiosConfig);
+        try {
+            const axiosResponse = await axios.get(url, axiosConfig);
         
-        const apiResult: IApiResultObject<IPlanhatCompany> = {
-            data: axiosResponse.data,
-            endpoint: url,
-            error: axiosResponse.status >= 400 ? axiosResponse.statusText : undefined,
-            method: "query",
-            record: undefined,
-            success: axiosResponse.status < 400
-        };
+            const apiResult: IApiResultObject<IPlanhatCompany> = {
+                data: axiosResponse.data,
+                endpoint: url,
+                error: axiosResponse.status >= 400 ? axiosResponse.statusText : undefined,
+                method: "query",
+                record: undefined,
+                success: axiosResponse.status < 400
+            };
 
-        return apiResult;
+            return apiResult;
+        } catch (error) {
+            const axiosResponse = (error as AxiosError).response;
+
+            const apiResult: IApiResultObject<IPlanhatCompany> = {
+                data: undefined,
+                endpoint: url,
+                error: (error as AxiosError).message,
+                method: "query",
+                record: undefined,
+                success: false
+            };
+
+            if (axiosResponse !== undefined) {
+                apiResult.data = axiosResponse.data;
+                apiResult.error = [ (error as AxiosError).message, axiosResponse.statusText]
+            }
+
+            return apiResult;
+        }
+        
     }
 
     /**
@@ -213,18 +297,39 @@ class PlanhatClient {
             responseType: "json"
         }
 
-        const axiosResponse = await axios.post(url, data, axiosConfig);
+        try {
+            const axiosResponse = await axios.post(url, data, axiosConfig);
         
-        const apiResult: IApiResultObject<IPlanhatCompany> = {
-            data: axiosResponse.data,
-            endpoint: url,
-            error: axiosResponse.status >= 400 ? axiosResponse.statusText : undefined,
-            method: "insert",
-            record: data,
-            success: axiosResponse.status < 400
-        };
+            const apiResult: IApiResultObject<IPlanhatCompany> = {
+                data: axiosResponse.data,
+                endpoint: url,
+                error: axiosResponse.status >= 400 ? axiosResponse.statusText : undefined,
+                method: "insert",
+                record: data,
+                success: axiosResponse.status < 400
+            };
 
-        return apiResult;
+            return apiResult;
+        } catch (error) {
+            const axiosResponse = (error as AxiosError).response;
+
+            const apiResult: IApiResultObject<IPlanhatCompany> = {
+                data: undefined,
+                endpoint: url,
+                error: (error as AxiosError).message,
+                method: "insert",
+                record: data,
+                success: false
+            };
+
+            if (axiosResponse !== undefined) {
+                apiResult.data = axiosResponse.data;
+                apiResult.error = [ (error as AxiosError).message, axiosResponse.statusText]
+            }
+
+            return apiResult;
+        }
+        
     }
 
     /**
@@ -244,18 +349,39 @@ class PlanhatClient {
             responseType: "json"
         }
 
-        const axiosResponse = await axios.put(url, data, axiosConfig);
+        try {
+            const axiosResponse = await axios.put(url, data, axiosConfig);
         
-        const apiResult: IApiResultObject<IPlanhatCompany> = {
-            data: axiosResponse.data,
-            endpoint: url,
-            error: axiosResponse.status >= 400 ? axiosResponse.statusText : undefined,
-            method: "update",
-            record: data,
-            success: axiosResponse.status < 400
-        };
+            const apiResult: IApiResultObject<IPlanhatCompany> = {
+                data: axiosResponse.data,
+                endpoint: url,
+                error: axiosResponse.status >= 400 ? axiosResponse.statusText : undefined,
+                method: "update",
+                record: data,
+                success: axiosResponse.status < 400
+            };
 
-        return apiResult;
+            return apiResult;
+        } catch (error) {
+            const axiosResponse = (error as AxiosError).response;
+
+            const apiResult: IApiResultObject<IPlanhatCompany> = {
+                data: undefined,
+                endpoint: url,
+                error: (error as AxiosError).message,
+                method: "update",
+                record: data,
+                success: false
+            };
+
+            if (axiosResponse !== undefined) {
+                apiResult.data = axiosResponse.data;
+                apiResult.error = [ (error as AxiosError).message, axiosResponse.statusText]
+            }
+
+            return apiResult;
+        }
+        
     }
 
     /**
@@ -275,18 +401,39 @@ class PlanhatClient {
             responseType: "json"
         }
 
-        const axiosResponse = await axios.delete(url, axiosConfig);
+        try {
+            const axiosResponse = await axios.delete(url, axiosConfig);
         
-        const apiResult: IApiResultObject<IPlanhatCompany> = {
-            data: axiosResponse.data,
-            endpoint: url,
-            error: axiosResponse.status >= 400 ? axiosResponse.statusText : undefined,
-            method: "delete",
-            record: undefined,
-            success: axiosResponse.status < 400
-        };
+            const apiResult: IApiResultObject<IPlanhatCompany> = {
+                data: axiosResponse.data,
+                endpoint: url,
+                error: axiosResponse.status >= 400 ? axiosResponse.statusText : undefined,
+                method: "delete",
+                record: undefined,
+                success: axiosResponse.status < 400
+            };
 
-        return apiResult;
+            return apiResult;
+        } catch (error) {
+            const axiosResponse = (error as AxiosError).response;
+
+            const apiResult: IApiResultObject<IPlanhatCompany> = {
+                data: undefined,
+                endpoint: url,
+                error: (error as AxiosError).message,
+                method: "delete",
+                record: undefined,
+                success: false
+            };
+
+            if (axiosResponse !== undefined) {
+                apiResult.data = axiosResponse.data;
+                apiResult.error = [ (error as AxiosError).message, axiosResponse.statusText]
+            }
+
+            return apiResult;
+        }
+        
     }
 
     /**
@@ -305,18 +452,39 @@ class PlanhatClient {
             responseType: "json"
         }
 
-        const axiosResponse = await axios.post(url, data, axiosConfig);
+        try {
+            const axiosResponse = await axios.post(url, data, axiosConfig);
         
-        const apiResult: IApiResultObject<IPlanhatEvent> = {
-            data: axiosResponse.data,
-            endpoint: url,
-            error: axiosResponse.status >= 400 ? axiosResponse.statusText : undefined,
-            method: "insert",
-            record: data,
-            success: axiosResponse.status < 400
-        };
+            const apiResult: IApiResultObject<IPlanhatEvent> = {
+                data: axiosResponse.data,
+                endpoint: url,
+                error: axiosResponse.status >= 400 ? axiosResponse.statusText : undefined,
+                method: "insert",
+                record: data,
+                success: axiosResponse.status < 400
+            };
 
-        return apiResult;
+            return apiResult;
+        } catch (error) {
+            const axiosResponse = (error as AxiosError).response;
+
+            const apiResult: IApiResultObject<IPlanhatEvent> = {
+                data: undefined,
+                endpoint: url,
+                error: (error as AxiosError).message,
+                method: "insert",
+                record: data,
+                success: false
+            };
+
+            if (axiosResponse !== undefined) {
+                apiResult.data = axiosResponse.data;
+                apiResult.error = [ (error as AxiosError).message, axiosResponse.statusText]
+            }
+
+            return apiResult;
+        }
+        
     }
 }
 
