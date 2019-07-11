@@ -1,0 +1,19 @@
+{
+    "presets": [
+        "@babel/env",
+        "@babel/typescript"
+    ],
+    "plugins": [
+        "@babel/proposal-class-properties",
+        "@babel/proposal-object-rest-spread"
+    ],
+    "ignore": [
+        "**/*.d.ts",
+        "**/*.json"
+    ],
+    "env": {
+        "test": {
+            "plugins": ["@babel/plugin-transform-runtime"]
+        }
+    }
+}

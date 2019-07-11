@@ -1,0 +1,66 @@
+{
+  "name": "hull-planhat",
+  "version": "0.1.0",
+  "description": "Hull connector for planhat.com",
+  "main": "index.ts",
+  "scripts": {
+    "test": "jest --env=node --colors --coverage --no-cache",
+    "build:js": "babel src --out-dir build --extensions \".ts,.tsx\" --source-maps inline",
+    "lint": "tslint src/**/*.{ts,tsx}",
+    "serve-debug": "nodemon --inspect build/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SMK1085/hull-planhat.git"
+  },
+  "keywords": [
+    "Hull",
+    "Planhat",
+    "Integration"
+  ],
+  "author": {
+    "email": "sven@hull.io",
+    "name": "Sven Maschek",
+    "url": "https://www.hull.io"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SMK1085/hull-planhat/issues"
+  },
+  "homepage": "https://github.com/SMK1085/hull-planhat#readme",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "bluebird": "^3.5.5",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "hull": "^0.13.18",
+    "lodash": "^4.17.11",
+    "newrelic": "^5.10.0",
+    "typescript": "^3.5.2",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.5.0",
+    "@babel/core": "^7.5.4",
+    "@babel/plugin-proposal-class-properties": "7.4.4",
+    "@babel/preset-env": "7.4.5",
+    "@babel/preset-typescript": "7.3.3",
+    "@babel/plugin-transform-runtime": "^7.5.0",
+    "@babel/runtime": "^7.5.4",
+    "@types/cors": "^2.8.5",
+    "@types/express": "^4.17.0",
+    "@types/jest": "^24.0.15",
+    "@types/lodash": "^4.14.136",
+    "@types/nock": "^10.0.3",
+    "@types/node": "^12.6.0",
+    "@types/winston": "^2.4.4",
+    "babel-jest": "^24.8.0",
+    "jest": "^24.8.0",
+    "nock": "10.0.6",
+    "nodemon": "1.19.1",
+    "ts-jest": "^24.0.2",
+    "tslint": "^5.18.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-config-standard": "^8.0.1"
+  }
+}
