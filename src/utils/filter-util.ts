@@ -88,6 +88,12 @@ class FilterUtil {
         return filteredMessages;
     }
 
+    public filterEvents(events: IHullUserEvent[]): IHullUserEvent[] {
+        return _.filter(events, (evt: IHullUserEvent) => {
+            return _.includes(this._contactEvents, evt.event);
+        });
+    }
+
     public filterAccountMessages(messages: IHullAccountUpdateMessage[], isBatch: boolean = false): Array<IOperationEnvelope<IPlanhatCompany>> {
         const envelopes: Array<IOperationEnvelope<IPlanhatCompany>> = [];
         
@@ -142,6 +148,27 @@ class FilterUtil {
                 envelopes.push(envelope);
             });
         }
+
+        return envelopes;
+    }
+
+    public filterCompanyEnvelopes(envelopes: Array<IOperationEnvelope<IPlanhatCompany>>): Array<IOperationEnvelope<IPlanhatCompany>> {
+        _.forEach(envelopes, (envelope:IOperationEnvelope<IPlanhatCompany>) => {
+            const company = envelope.serviceObject as IPlanhatCompany;
+            let op = envelope.operation;
+            let reason = "";
+
+            if (company.name === undefined) {
+                op = "skip";
+                reason = "No company name present."
+            }
+
+            reason = _.trim(reason);
+            envelope.operation = op;
+            if (op === "skip" && reason.length > 0) {
+                envelope.reason = reason;
+            }
+        });
 
         return envelopes;
     }

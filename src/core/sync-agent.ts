@@ -5,7 +5,12 @@ import IPrivateSettings from "../types/private-settings";
 import _ from "lodash";
 import IHullUserUpdateMessage from "../types/user-update-message";
 import IHullAccountUpdateMessage from "../types/account-update-message";
-import { IPlanhatContact, IOperationEnvelope } from "./planhat-objects";
+import { IPlanhatContact, IOperationEnvelope, IPlanhatEvent, IPlanhatCompany } from "./planhat-objects";
+import PlanhatClient from "./planhat-client";
+import IPlanhatClientConfig from "../types/planhat-client-config";
+import asyncForEach from "../utils/async-foreach";
+import IHullUserEvent from "../types/user-event";
+import IHullAccount from "../types/account";
 
 class SyncAgent {
     private _hullClient: IHullClient;
@@ -14,6 +19,7 @@ class SyncAgent {
     private _filterUtil: FilterUtil;
     private _mappingUtil: MappingUtil;
     private _canCommunicateWithApi: boolean;
+    private _serviceClient: PlanhatClient;
 
     /**
      * Initializes a new class of the SyncAgent.
@@ -25,6 +31,13 @@ class SyncAgent {
         // Obtain the private settings from the connector and run some basic checks
         const privateSettings: IPrivateSettings = _.get(connector, "private_settings") as IPrivateSettings;
         this._canCommunicateWithApi = this.canCommunicateWithApi(privateSettings);
+        // Initialize the service client
+        const svcClientConfig: IPlanhatClientConfig = {
+            accessToken: privateSettings.personal_acccess_token || "",
+            apiPrefix: privateSettings.api_prefix || "api",
+            tenantId: privateSettings.tenant_id || ""
+        };
+        this._serviceClient = new PlanhatClient(svcClientConfig);
         // Initialize the utils
         this._filterUtil = new FilterUtil(privateSettings);
         this._mappingUtil = new MappingUtil(privateSettings);
@@ -74,7 +87,43 @@ class SyncAgent {
                 .logger.info("outgoing.user.skip", { reason: envelope.reason });
         });
         
-        // TODO: Process all valid users and send them to Planhat
+        // Process all valid users and send them to Planhat
+        await asyncForEach(envelopesValidated, async (envelope: IOperationEnvelope<IPlanhatContact>) => {
+            const lookupResult = await this._serviceClient.findContactByEmail((envelope.serviceObject as IPlanhatContact).email as string);
+            if (lookupResult.success && (lookupResult.data as IPlanhatContact).id !== undefined) {
+                (envelope.serviceObject as IPlanhatContact).id = (lookupResult.data as IPlanhatContact).id;
+                // Update the existing contact
+                const updateResult = this._serviceClient.updateContact(envelope.serviceObject as IPlanhatContact);
+                // TODO: Handle the result
+            } else {
+                // Create a new contact
+                const insertResult = this._serviceClient.createContact(envelope.serviceObject as IPlanhatContact);
+                // TODO: Handle the result
+            }
+        });
+
+        // Process all events and track them in Planhat
+        let eventMessages: IHullUserUpdateMessage[] = _.map(envelopesValidated, (envelope: IOperationEnvelope<IPlanhatContact>) => (envelope.msg as IHullUserUpdateMessage));
+        eventMessages = this._filterUtil.filterMessagesWithEvent(eventMessages)
+
+        const eventsToTrack: IPlanhatEvent[] = [];
+        _.forEach(eventMessages, (msg: IHullUserUpdateMessage) => {
+            const filteredEvents = this._filterUtil.filterEvents(msg.events);
+            if(filteredEvents.length > 0) {
+                _.forEach(filteredEvents, (hullEvent: IHullUserEvent) => {
+                    const phEvent = this._mappingUtil.mapHullUserEventToPlanhatEvent(msg, hullEvent);
+                    eventsToTrack.push(phEvent);
+                });
+            }
+        });
+
+        if (eventsToTrack.length > 0) {
+            await asyncForEach(eventsToTrack, async (evt: IPlanhatEvent) => {
+                const trackResult = await this._serviceClient.trackEvent(evt);
+                // TODO: Handle the result
+            })
+        }
+
         
         return Promise.resolve(true);
     }
@@ -93,13 +142,51 @@ class SyncAgent {
         }
 
         // Filter messages based on connector configuration
-        const filteredMessages = isBatch === true ? messages: this._filterUtil.filterAccountMessages(messages);
+        const filteredEnvelopes = this._filterUtil.filterAccountMessages(messages, isBatch);
+        const envelopesToProcess = _.filter(filteredEnvelopes, (envelope: IOperationEnvelope<IPlanhatCompany>) => {
+            return envelope.operation !== "skip";
+        });
 
-        if (filteredMessages.length === 0) {
+        if (envelopesToProcess.length === 0) {
+            // TODO: Determine whether we want to log skip because it will
+            //       be filtered anyways by Kraken going forward.
             return Promise.resolve(true);
         }
 
-        // TODO: Replace with actual implementation
+        // Map and validate envelopes
+        _.forEach(envelopesToProcess, (envelope: IOperationEnvelope<IPlanhatCompany>) => {
+            envelope.serviceObject = this._mappingUtil.mapHullAccountToPlanhatCompany(envelope.msg as IHullAccountUpdateMessage);
+        });
+
+        const envelopesFilteredForService = this._filterUtil.filterCompanyEnvelopes(envelopesToProcess);
+        const envelopesValidated = _.filter(envelopesFilteredForService, (envelope: IOperationEnvelope<IPlanhatCompany>) => {
+            return envelope.operation !== "skip";
+        });
+        const envelopesInvalidated = _.filter(envelopesFilteredForService, (envelope: IOperationEnvelope<IPlanhatCompany>) => {
+            return envelope.operation === "skip";
+        }); 
+
+        // Log invalidated envelopes with skip reason
+        _.forEach(envelopesInvalidated, (envelope: IOperationEnvelope<IPlanhatCompany>) => {
+            this._hullClient.asAccount((envelope.msg as IHullAccountUpdateMessage).account as IHullAccount)
+                .logger.info("outgoing.account.skip", { reason: envelope.reason });
+        });
+        
+        // Process all valid companies and send them to Planhat
+        await asyncForEach(envelopesValidated, async (envelope: IOperationEnvelope<IPlanhatCompany>) => {
+            const lookupResult = await this._serviceClient.findCompanyByExternalId((envelope.serviceObject as IPlanhatCompany).externalId as string);
+            if (lookupResult.success && (lookupResult.data as IPlanhatCompany).id !== undefined) {
+                (envelope.serviceObject as IPlanhatCompany).id = (lookupResult.data as IPlanhatCompany).id;
+                // Update the existing contact
+                const updateResult = this._serviceClient.updateCompany(envelope.serviceObject as IPlanhatCompany);
+                // TODO: Handle the result
+            } else {
+                // Create a new contact
+                const insertResult = this._serviceClient.createCompany(envelope.serviceObject as IPlanhatCompany);
+                // TODO: Handle the result
+            }
+        });
+
         return Promise.resolve(true);
     }
 
