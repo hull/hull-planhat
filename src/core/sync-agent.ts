@@ -11,6 +11,8 @@ import IPlanhatClientConfig from "../types/planhat-client-config";
 import asyncForEach from "../utils/async-foreach";
 import IHullUserEvent from "../types/user-event";
 import IHullAccount from "../types/account";
+import IApiResultObject from "../types/api-result";
+import { HullObjectType } from "../types/common-types";
 
 class SyncAgent {
     private _hullClient: IHullClient;
@@ -93,12 +95,12 @@ class SyncAgent {
             if (lookupResult.success && (lookupResult.data as IPlanhatContact).id !== undefined) {
                 (envelope.serviceObject as IPlanhatContact).id = (lookupResult.data as IPlanhatContact).id;
                 // Update the existing contact
-                const updateResult = this._serviceClient.updateContact(envelope.serviceObject as IPlanhatContact);
-                // TODO: Handle the result
+                const updateResult = await this._serviceClient.updateContact(envelope.serviceObject as IPlanhatContact);
+                this.handleOutgoingResult(envelope, updateResult, "user");
             } else {
                 // Create a new contact
-                const insertResult = this._serviceClient.createContact(envelope.serviceObject as IPlanhatContact);
-                // TODO: Handle the result
+                const insertResult = await this._serviceClient.createContact(envelope.serviceObject as IPlanhatContact);
+                this.handleOutgoingResult(envelope, insertResult, "user");
             }
         });
 
@@ -120,7 +122,12 @@ class SyncAgent {
         if (eventsToTrack.length > 0) {
             await asyncForEach(eventsToTrack, async (evt: IPlanhatEvent) => {
                 const trackResult = await this._serviceClient.trackEvent(evt);
-                // TODO: Handle the result
+                const scopedTrackClient = this._hullClient.asUser({ email: evt.email, external_id: evt.externalId});
+                if (trackResult.success === true) {
+                    scopedTrackClient.logger.log(`outgoing.user_event.success`, trackResult);
+                } else {
+                    scopedTrackClient.logger.error(`outgoing.user_event.error`, trackResult);
+                }
             })
         }
 
@@ -177,13 +184,13 @@ class SyncAgent {
             const lookupResult = await this._serviceClient.findCompanyByExternalId((envelope.serviceObject as IPlanhatCompany).externalId as string);
             if (lookupResult.success && (lookupResult.data as IPlanhatCompany).id !== undefined) {
                 (envelope.serviceObject as IPlanhatCompany).id = (lookupResult.data as IPlanhatCompany).id;
-                // Update the existing contact
-                const updateResult = this._serviceClient.updateCompany(envelope.serviceObject as IPlanhatCompany);
-                // TODO: Handle the result
+                // Update the existing company
+                const updateResult = await this._serviceClient.updateCompany(envelope.serviceObject as IPlanhatCompany);
+                this.handleOutgoingResult(envelope, updateResult, "account");
             } else {
-                // Create a new contact
-                const insertResult = this._serviceClient.createCompany(envelope.serviceObject as IPlanhatCompany);
-                // TODO: Handle the result
+                // Create a new company
+                const insertResult = await this._serviceClient.createCompany(envelope.serviceObject as IPlanhatCompany);
+                this.handleOutgoingResult(envelope, insertResult, "account");
             }
         });
 
@@ -199,12 +206,27 @@ class SyncAgent {
      * @memberof SyncAgent
      */
     private canCommunicateWithApi(privateSettings: IPrivateSettings): boolean {
-        if (privateSettings.personal_acccess_token === undefined ||
-            privateSettings.personal_acccess_token === null) {
+        if (privateSettings.personal_acccess_token === undefined) {
                 return false;
         }
 
         return true;
+    }
+
+    private handleOutgoingResult<T>(envelope: IOperationEnvelope<T>, operationResult: IApiResultObject<T>, hullType: HullObjectType) {
+        const scopedClient = hullType === "account" ?
+        this._hullClient.asAccount((envelope.msg as IHullAccountUpdateMessage).account as IHullAccount):
+         this._hullClient.asUser((envelope.msg as IHullUserUpdateMessage).user);
+         
+        
+        if (operationResult.success === true)
+        {
+            scopedClient.logger.log(`outgoing.${hullType}.success`, operationResult);
+        }
+        else
+        {
+            scopedClient.logger.error(`outgoing.${hullType}.error`, operationResult);
+        }
     }
 }
 
