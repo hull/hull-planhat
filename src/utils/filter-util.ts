@@ -158,7 +158,7 @@ class FilterUtil {
             let op = envelope.operation;
             let reason = "";
 
-            if (company.name === undefined) {
+            if (company.name === undefined || (_.isString(company.name) && company.name.length === 0)) {
                 op = "skip";
                 reason = "No company name present."
             }

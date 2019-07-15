@@ -533,4 +533,37 @@ describe('PlanhatClient', () => {
             };
             expect(actual).toEqual(expected);
     });
+
+    test('should not throw if api returns status 500 when tracking events', async() => {
+        const data: IPlanhatEvent = {
+            action: "Account created",
+            companyExternalId: "company1234",
+            date: new Date().toISOString(),
+            email: "test1@hull.io",
+            externalId: "usr64593",
+            name: "John Smith"
+        };
+
+        const svcClientConfig: IPlanhatClientConfig = {
+            accessToken: "yp42nhyhAKFLUSg5y4u0w==",
+            apiPrefix: "api",
+            tenantId: "py3h8hbrn"
+        };
+
+        nock('https://analytics.planhat.com') // No authentication required for this one
+            .post(`/analytics/${svcClientConfig.tenantId}`)
+            .replyWithError('Some arbitrary error');
+        
+            const svcClient = new PlanhatClient(svcClientConfig);
+            const actual = await svcClient.trackEvent(data);
+            const expected: IApiResultObject<IPlanhatEvent> = {
+                data: undefined,
+                endpoint: `https://analytics.planhat.com/analytics/${svcClientConfig.tenantId}`,
+                method: "insert",
+                record: data,
+                success: false,
+                error: 'Some arbitrary error'
+            };
+            expect(actual).toEqual(expected);
+    });
 });
