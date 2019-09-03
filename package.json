@@ -4,11 +4,14 @@
   "description": "Hull connector for planhat.com",
   "main": "index.ts",
   "scripts": {
+    "start": "npm run serve",
+    "serve": "pm2-runtime start ecosystem.config.js --env production",
     "test": "jest --env=node --colors --coverage --no-cache",
     "build:js": "babel src --out-dir build --extensions \".ts,.tsx\" --source-maps inline",
     "lint": "tslint src/**/*.{ts,tsx}",
     "serve-debug": "nodemon --inspect build/index.js",
-    "ngrok": "ngrok http 8083 --subdomain=hull-planhat"
+    "ngrok": "ngrok http 8083 --subdomain=hull-planhat",
+    "postinstall": "npm run build:js"
   },
   "repository": {
     "type": "git",
@@ -37,6 +40,7 @@
     "hull": "^0.13.18",
     "lodash": "^4.17.11",
     "newrelic": "^5.10.0",
+    "pm2": "^3.5.1",
     "typescript": "^3.5.2",
     "winston": "^3.2.1"
   },
