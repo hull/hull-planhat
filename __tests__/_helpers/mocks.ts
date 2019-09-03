@@ -1,11 +1,12 @@
-import IHullClient from "../../src/types/hull-client";
+import IHullClient, { IHullEntityScopedClient } from "../../src/types/hull-client";
 import IPrivateSettings from "../../src/types/private-settings";
 
 const ClientMock: any = jest.fn<IHullClient, []>(() => ({
     configuration: {},
     api: jest.fn(() => Promise.resolve()),
-    asAccount: jest.fn(() => new ClientMock()),
-    asUser: jest.fn(() => new ClientMock()),
+    // tslint:disable-next-line:no-implicit-any
+    asAccount () { return this as any; },
+    asUser () { return this as any; },
     del: jest.fn(() => Promise.resolve()),
     get: jest.fn(() => Promise.resolve()),
     logger: {
@@ -62,4 +63,4 @@ class ContextMock {
     public metric: any;
 }
 
-export default { ClientMock, ConnectorMock, ContextMock };
+export { ClientMock, ConnectorMock, ContextMock };

@@ -47,14 +47,15 @@
           },
         {
             "name": "contact_events",
-            "title": "Hull Events to send to Planhat",
+            "title": "Tracking Filter",
+            "description": "Send these event as end-user activity to Planhat. If no events are whitelisted, no event data will be sent but user attributes are still being synchronized to Planhat Contacts.",
             "format": "event",
             "type": "array",
             "default": []
         },
         {
             "name" : "contact_attributes_outbound",
-            "title" : "List of Standard Contact fields to send from Hull to Planhat",
+            "title" : "User attributes mapping",
             "type" : "array",
             "format" : "table",
             "default" : [
@@ -93,7 +94,7 @@
         },
         {
             "name": "account_synchronized_segments",
-            "title": "Account Filter",
+            "title": "Company Filter",
             "description": "Send accounts when they belong to one of these segments to Planhat. Only accounts in the specified segments are sent.",
             "type": "array",
             "format": "accountSegment",
@@ -107,7 +108,7 @@
         },
         {
             "name" : "account_attributes_outbound",
-            "title" : "List of Standard Account attributes to push to Planhat",
+            "title" : "Account attributes mapping",
             "type" : "array",
             "format" : "table",
             "default" : [
@@ -158,8 +159,8 @@
             "description": "How we send Users and Events as Planhat Contacts and Events",
             "properties": [
               "private_settings.contact_synchronized_segments",
-              "private_settings.contact_events",
-              "private_settings.contact_attributes_outbound"
+              "private_settings.contact_attributes_outbound",
+              "private_settings.contact_events"
             ]
         },
         {

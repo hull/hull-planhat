@@ -124,7 +124,7 @@ class SyncAgent {
                 const trackResult = await this._serviceClient.trackEvent(evt);
                 const scopedTrackClient = this._hullClient.asUser({ email: evt.email, external_id: evt.externalId});
                 if (trackResult.success === true) {
-                    scopedTrackClient.logger.log(`outgoing.user_event.success`, trackResult);
+                    scopedTrackClient.logger.info(`outgoing.user_event.success`, trackResult);
                 } else {
                     scopedTrackClient.logger.error(`outgoing.user_event.error`, trackResult);
                 }
@@ -221,7 +221,7 @@ class SyncAgent {
         
         if (operationResult.success === true)
         {
-            scopedClient.logger.log(`outgoing.${hullType}.success`, operationResult);
+            scopedClient.logger.info(`outgoing.${hullType}.success`, operationResult);
         }
         else
         {

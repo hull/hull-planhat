@@ -1,18 +1,19 @@
 {
     "tslint.autoFixOnSave": true,
     "workbench.colorCustomizations": {
-        "activityBar.background": "#51adf6",
+        "activityBar.background": "#50adf6",
         "activityBar.foreground": "#15202b",
         "activityBar.inactiveForeground": "#15202b99",
-        "activityBarBadge.background": "#d40b7b",
+        "activityBarBadge.background": "#d40b7c",
         "activityBarBadge.foreground": "#e7e7e7",
-        "titleBar.activeBackground": "#2196f3",
-        "titleBar.inactiveBackground": "#2196f399",
+        "titleBar.activeBackground": "#2096f3",
+        "titleBar.inactiveBackground": "#2096f399",
         "titleBar.activeForeground": "#e7e7e7",
         "titleBar.inactiveForeground": "#e7e7e799",
-        "statusBar.background": "#2196f3",
-        "statusBarItem.hoverBackground": "#51adf6",
+        "statusBar.background": "#2096f3",
+        "statusBarItem.hoverBackground": "#50adf6",
         "statusBar.foreground": "#e7e7e7"
     },
-    "jest.pathToConfig": "./jest.config.js"
+    "jest.pathToConfig": "./jest.config.js",
+    "peacock.color": "#2096f3"
 }
