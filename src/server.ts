@@ -27,6 +27,15 @@ const server = (app: Application): Application => {
         }
     }));
 
+    app.use("/batch", smartNotifierHandler({
+        userHandlerOptions: {
+          groupTraits: false
+        },
+        handlers: {
+          "user:update": actions.userUpdate({ isBatch: true})
+        }
+      }));
+
     // CORS enabled endpoints for manifest.json
     app.get("/schema/(:type)", cors(), actions.fieldsSchema);
 

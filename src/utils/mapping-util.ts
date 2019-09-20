@@ -5,6 +5,8 @@ import _ from "lodash";
 import PLANHAT_PROPERTIES from "../core/planhat-properties";
 import IHullAccountUpdateMessage from "../types/account-update-message";
 import IHullUserEvent from "../types/user-event";
+import { IHullUserAttributes } from "../types/user";
+import { IHullAccountAttributes } from "../types/account";
 
 class MappingUtil {
 
@@ -21,7 +23,7 @@ class MappingUtil {
         // Map the service props so we can look them up
         const mappedServiceProps = {};
         _.forIn(PLANHAT_PROPERTIES.CONTACTS, (v: string, k: string) => {
-            _.set(mappedServiceProps, v, k);
+            _.set(mappedServiceProps, k, v);
         });
         // Instantiate ref
         const serviceObject: IPlanhatContact = {
@@ -41,11 +43,15 @@ class MappingUtil {
                 // Make sure we have a consistent `undefined` if no data is present,
                 // so we can rely on it for reducing the object
                 _.set(serviceObject, 
-                      _.get(mappedServiceProps, mapping.service_field_name),
+                      mapping.service_field_name,
                       _.get(message, messageProperty, undefined)
                     );
             }
         });
+
+        // Company ID can only be the internal ID from Planhat
+        // so we need to overwrite legacy configurations
+        _.set(serviceObject, "companyId", _.get(message, 'account.planhat.id', undefined));
 
         // TODO: Map custom attributes
 
@@ -65,7 +71,7 @@ class MappingUtil {
         // Map the service props so we can look them up
         const mappedServiceProps = {};
         _.forIn(PLANHAT_PROPERTIES.CONTACTS, (v: string, k: string) => {
-            _.set(mappedServiceProps, v, k);
+            _.set(mappedServiceProps, k, v);
         });
         // Instantiate ref
         const serviceObject: IPlanhatEvent = {
@@ -75,18 +81,18 @@ class MappingUtil {
 
         // Obtain the mapped attributes from the Hull user
         const mappings = this._connectorSettings.contact_attributes_outbound;
-        if (_.find(mappings, { service_field_name: PLANHAT_PROPERTIES.CONTACTS.name })) {
-            const mapping: IMappingEntry = _.find(mappings, { service_field_name: PLANHAT_PROPERTIES.CONTACTS.name }) as IMappingEntry;
+        if (_.find(mappings, { service_field_name: "name" })) {
+            const mapping: IMappingEntry = _.find(mappings, { service_field_name: "name" }) as IMappingEntry;
             serviceObject.name = _.get(message, `user.${mapping.hull_field_name}`, undefined);
         }
 
-        if (_.find(mappings, { service_field_name: PLANHAT_PROPERTIES.CONTACTS.externalId })) {
-            const mapping: IMappingEntry = _.find(mappings, { service_field_name: PLANHAT_PROPERTIES.CONTACTS.externalId }) as IMappingEntry;
+        if (_.find(mappings, { service_field_name: "externalId" })) {
+            const mapping: IMappingEntry = _.find(mappings, { service_field_name: "externalId" }) as IMappingEntry;
             serviceObject.externalId = _.get(message, `user.${mapping.hull_field_name}`, undefined);
         }
 
-        if (_.find(mappings, { service_field_name: PLANHAT_PROPERTIES.CONTACTS.email })) {
-            const mapping: IMappingEntry = _.find(mappings, { service_field_name: PLANHAT_PROPERTIES.CONTACTS.email }) as IMappingEntry;
+        if (_.find(mappings, { service_field_name: "email" })) {
+            const mapping: IMappingEntry = _.find(mappings, { service_field_name: "email" }) as IMappingEntry;
             serviceObject.email = _.get(message, `user.${mapping.hull_field_name}`, undefined);
         }
 
@@ -111,7 +117,7 @@ class MappingUtil {
         // Map the service props so we can look them up
         const mappedServiceProps = {};
         _.forIn(PLANHAT_PROPERTIES.COMPANIES, (v: string, k: string) => {
-            _.set(mappedServiceProps, v, k);
+            _.set(mappedServiceProps, k, v);
         });
         // Instantiate ref
         const serviceObject: IPlanhatCompany = {
@@ -127,7 +133,7 @@ class MappingUtil {
                 // Make sure we have a consistent `undefined` if no data is present,
                 // so we can rely on it for reducing the object
                 _.set(serviceObject, 
-                      _.get(mappedServiceProps, mapping.service_field_name),
+                      mapping.service_field_name,
                       _.get(message, messageProperty, undefined)
                     );
             }
@@ -142,6 +148,60 @@ class MappingUtil {
             }
             return _.identity(v);
         }) as IPlanhatCompany;
+    }
+
+    /**
+     * Map a Planhat Contact to user attributes in Hull.
+     *
+     * @param {IPlanhatContact} dataObject The contact object from Planhat.
+     * @returns {IHullUserAttributes} The object representing the Hull user attributes.
+     * @memberof MappingUtil
+     */
+    public mapPlanhatContactToUserAttributes(dataObject: IPlanhatContact): IHullUserAttributes {
+        const attributes: IHullUserAttributes = {};
+
+        _.forIn(dataObject, (v: any, k: string) => {
+            if (k === "_id") {
+                _.set(attributes, `planhat/id`, v);
+            } else if(!_.startsWith(k, "_")) {
+                _.set(attributes, `planhat/${_.snakeCase(k)}`, v);
+            }
+        });
+
+        // Set the top level name attribute
+        if(_.get(dataObject, "name", undefined) !== undefined) {
+            _.set(attributes, "name", { value: _.get(dataObject, "name"), operation: "setIfNull" });
+        }
+
+        return attributes;
+    }
+
+    /**
+     * Map a Planhat company to account attributes in Hull.
+     *
+     * @param {IPlanhatCompany} dataObject The company object from Planhat.
+     * @returns {IHullAccountAttributes} The object representing the Hull account attributes.
+     * @memberof MappingUtil
+     */
+    public mapPlanhatCompanyToAccountAttributes(dataObject: IPlanhatCompany): IHullAccountAttributes {
+        const attributes: IHullAccountAttributes = {};
+
+        _.forIn(dataObject, (v: any, k: string) => {
+            if (k === "_id") {
+                _.set(attributes, `planhat/id`, v);
+            } else if(k === "lastUpdated") {
+                _.set(attributes, `planhat/last_updated_at`, v);
+            } else if(!_.startsWith(k, "_") && k !== "shareable") {
+                _.set(attributes, `planhat/${_.snakeCase(k)}`, v);
+            }
+        });
+
+        // Set the top level name attribute
+        if(_.get(dataObject, "name", undefined) !== undefined) {
+            _.set(attributes, "name", { value: _.get(dataObject, "name"), operation: "setIfNull" });
+        }
+
+        return attributes;
     }
 }
 

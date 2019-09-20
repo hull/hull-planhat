@@ -9,15 +9,15 @@
             "contact_attributes_outbound": [
                 {
                     "hull_field_name": "account.external_id",
-                    "service_field_name": "Company id (*)"
+                    "service_field_name": "companyId"
                 },
                 {
                     "hull_field_name": "name",
-                    "service_field_name": "Full name"
+                    "service_field_name": "name"
                 },
                 {
                     "hull_field_name": "email",
-                    "service_field_name": "Email"
+                    "service_field_name": "email"
                 }
             ],
             "account_synchronized_segments": [],
@@ -25,7 +25,7 @@
             "account_attributes_outbound": [
                 {
                     "hull_field_name": "name",
-                    "service_field_name": "Name"
+                    "service_field_name": "name"
                 }
             ]
         },

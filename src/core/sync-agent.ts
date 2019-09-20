@@ -10,9 +10,10 @@ import PlanhatClient from "./planhat-client";
 import IPlanhatClientConfig from "../types/planhat-client-config";
 import asyncForEach from "../utils/async-foreach";
 import IHullUserEvent from "../types/user-event";
-import IHullAccount from "../types/account";
+import IHullAccount, { IHullAccountClaims } from "../types/account";
 import IApiResultObject from "../types/api-result";
 import { HullObjectType } from "../types/common-types";
+import { IHullUserClaims } from "../types/user";
 
 class SyncAgent {
     private _hullClient: IHullClient;
@@ -75,6 +76,28 @@ class SyncAgent {
             envelope.serviceObject = this._mappingUtil.mapHullUserToPlanhatContact(envelope.msg as IHullUserUpdateMessage);
         });
 
+        // Process companies since we need the internal id from Planhat to insert the contact
+        await asyncForEach(envelopesToProcess, async (envelope: IOperationEnvelope<IPlanhatContact>) => {
+            if (_.get(envelope, "serviceObject.companyId", undefined) === undefined) {
+                const serviceObjectAcct = this._mappingUtil.mapHullAccountToPlanhatCompany(envelope.msg as IHullAccountUpdateMessage);
+                if(serviceObjectAcct) {
+                    const envAcct: IOperationEnvelope<IPlanhatCompany> | undefined= 
+                        _.first(this._filterUtil.filterCompanyEnvelopes([{
+                            msg: envelope.msg,
+                            operation: "insert",
+                            serviceObject: serviceObjectAcct
+                        }]));
+                    if (envAcct && envAcct.operation === "insert") {
+                        const acctResult = await this._serviceClient.createCompany(envAcct.serviceObject as IPlanhatCompany);
+                        if (acctResult.success === true) {
+                            _.set(envelope, "serviceObject.companyId", _.get(acctResult, "data._id", undefined));
+                        }
+                        this.handleOutgoingResult(envAcct, acctResult, 'account');
+                    }
+                }
+            }
+        });
+
         const envelopesFilteredForService = this._filterUtil.filterContactEnvelopes(envelopesToProcess);
         const envelopesValidated = _.filter(envelopesFilteredForService, (envelope: IOperationEnvelope<IPlanhatContact>) => {
             return envelope.operation !== "skip";
@@ -92,8 +115,12 @@ class SyncAgent {
         // Process all valid users and send them to Planhat
         await asyncForEach(envelopesValidated, async (envelope: IOperationEnvelope<IPlanhatContact>) => {
             const lookupResult = await this._serviceClient.findContactByEmail((envelope.serviceObject as IPlanhatContact).email as string);
-            if (lookupResult.success && (lookupResult.data as IPlanhatContact).id !== undefined) {
-                (envelope.serviceObject as IPlanhatContact).id = (lookupResult.data as IPlanhatContact).id;
+            // tslint:disable-next-line:no-console
+            console.log(">>> LOOKUP RESULT", lookupResult);
+            // tslint:disable-next-line:no-console
+            // console.log(">>> LOOKUP CHECK", lookupResult.success, (_.first(lookupResult.data) as IPlanhatContact)._id !== undefined);
+            if (lookupResult.success && _.first(lookupResult.data) && (_.first(lookupResult.data) as IPlanhatContact)._id !== undefined) {
+                (envelope.serviceObject as IPlanhatContact).id = (_.first(lookupResult.data) as IPlanhatContact)._id;
                 // Update the existing contact
                 const updateResult = await this._serviceClient.updateContact(envelope.serviceObject as IPlanhatContact);
                 this.handleOutgoingResult(envelope, updateResult, "user");
@@ -214,14 +241,29 @@ class SyncAgent {
     }
 
     private handleOutgoingResult<T>(envelope: IOperationEnvelope<T>, operationResult: IApiResultObject<T>, hullType: HullObjectType) {
-        const scopedClient = hullType === "account" ?
-        this._hullClient.asAccount((envelope.msg as IHullAccountUpdateMessage).account as IHullAccount):
-         this._hullClient.asUser((envelope.msg as IHullUserUpdateMessage).user);
+        const hullIdentity = hullType === "account" ? 
+        (envelope.msg as IHullAccountUpdateMessage).account as IHullAccount :
+        (envelope.msg as IHullUserUpdateMessage).user;
+        
+        let scopedClient = hullType === "account" ?
+        this._hullClient.asAccount(hullIdentity as IHullAccountClaims):
+         this._hullClient.asUser(hullIdentity as IHullUserClaims);
          
         
         if (operationResult.success === true)
         {
+            _.set(hullIdentity, "anonymous_id", `planhat:${_.get(operationResult, "data._id", null)}`);
+            scopedClient = hullType === "account" ?
+                this._hullClient.asAccount(hullIdentity as IHullAccountClaims):
+                this._hullClient.asUser(hullIdentity as IHullUserClaims);
+
             scopedClient.logger.info(`outgoing.${hullType}.success`, operationResult);
+
+            if (hullType === "account") {
+                return scopedClient.traits(this._mappingUtil.mapPlanhatCompanyToAccountAttributes(operationResult.data));
+            } else if (hullType === "user") {
+                return scopedClient.traits(this._mappingUtil.mapPlanhatContactToUserAttributes(operationResult.data));
+            }
         }
         else
         {

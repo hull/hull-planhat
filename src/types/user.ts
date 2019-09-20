@@ -14,3 +14,7 @@ export default interface IHullUser {
     anonymous_id: string | null;
     [propName: string]: HullAttribute;
 }
+
+export interface IHullUserAttributes {
+    [propName: string]: HullAttribute;
+}

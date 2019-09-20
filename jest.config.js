@@ -14,5 +14,9 @@ module.exports = {
           lines: 90,
           statements: 90
         }
-      },
+    },
+    collectCoverageFrom: [
+      "src/core/**",
+      "src/utils/**"
+    ]
 };

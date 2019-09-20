@@ -12,3 +12,7 @@ export default interface IHullAccount {
     external_id: string;
     [propName: string]: HullAttribute;
 }
+
+export interface IHullAccountAttributes {
+    [propName: string]: HullAttribute;
+}

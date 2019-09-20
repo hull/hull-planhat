@@ -27,7 +27,11 @@ describe('SyncAgent', () => {
     });
 
     const scenarios = [
-        'contact-insert'
+        'contact-skip-all',
+        'contact-insert',
+        'contact-insert-existingcompany',
+        'contact-update-noid',
+        'contact-update-withid'
     ];
 
     _.forEach(scenarios, (scenarioName) => {

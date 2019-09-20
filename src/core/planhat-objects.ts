@@ -2,6 +2,7 @@ import IHullUserUpdateMessage from "../types/user-update-message";
 import IHullAccountUpdateMessage from "../types/account-update-message";
 
 export interface IPlanhatCompany {
+    _id?: string;
     id?: string;
     name: string | undefined;
     slug?: string;
@@ -9,9 +10,11 @@ export interface IPlanhatCompany {
     phase?: string;
     tags?: string[];
     custom?: any;
+    [propName: string]: any; // Only in responses from the API
 }
 
 export interface IPlanhatContact {
+    _id?: string;
     id?: string;
     companyId: string | undefined;
     companyName?: string;
@@ -24,6 +27,7 @@ export interface IPlanhatContact {
     featured?: boolean;
     tags?: string[];
     custom?: any;
+    [propName: string]: any; // Only in responses from the API
 }
 
 export interface IPlanhatEvent {
