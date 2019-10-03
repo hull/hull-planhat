@@ -141,6 +141,11 @@ class MappingUtil {
 
         // TODO: Map custom attributes
 
+        // Add the id if present
+        if(_.get(message, "account.planhat.id", undefined) !== undefined) {
+            _.set(serviceObject, "id", _.get(message, "account.planhat.id"));
+        }
+
         // Remove all undefined values from the resulting object
         return _.pickBy(serviceObject, (v: any, k: string) => {
             if (k === "name") { // only required field

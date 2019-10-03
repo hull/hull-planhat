@@ -58,4 +58,31 @@ describe('SyncAgent', () => {
         });
     });
     
+    const acctScenarios = [
+        'account-insert',
+        'account-update'
+    ];
+
+    _.forEach(acctScenarios, (scenarioName) => {
+        test('should insert an account', async() => {
+            const payloadSetupFn: () => any = require(`../_scenarios/${scenarioName}/smart-notifier-payload`).default;
+            // tslint:disable-next-line:no-console
+            console.log(payloadSetupFn);
+            const smartNotifierPayload = payloadSetupFn();
+
+            ctxMock.connector = smartNotifierPayload.connector;
+            ctxMock.ship = smartNotifierPayload.connector;
+
+            const syncAgent = new SyncAgent(ctxMock.client, ctxMock.connector, ctxMock.metric);
+
+            const apiResponseSetupFn: (nock: any) => void = require(`../_scenarios/${scenarioName}/api-responses`).default;
+            apiResponseSetupFn(nock);
+
+            await syncAgent.sendAccountMessages(smartNotifierPayload.messages);
+            const ctxExpectationsFn: (ctx: ContextMock) => void = require(`../_scenarios/${scenarioName}/ctx-expectations`).default;
+            ctxExpectationsFn(ctxMock);
+            expect(nock.isDone()).toBe(true);
+
+        });
+    });
 });

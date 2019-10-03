@@ -229,6 +229,59 @@ class PlanhatClient {
     }
 
     /**
+     * Gets a Planhat company by the internal identifier.
+     *
+     * @param {string} id The Planhat identifier.
+     * @returns {Promise<IApiResultObject<IPlanhatCompany>>}
+     * @memberof PlanhatClient
+     */
+    public async getCompanyById(id: string) : Promise<IApiResultObject<IPlanhatCompany>> {
+        const url = `${this._apiBaseUrl}/companies/${id}`;
+        
+        const axiosConfig: AxiosRequestConfig = {
+            headers: {
+                Authorization: `Bearer ${this._accessToken}`
+            },
+            responseType: "json"
+        }
+
+        try {
+            const axiosResponse = await axios.get(url, axiosConfig);
+        
+            const apiResult: IApiResultObject<IPlanhatCompany> = {
+                data: axiosResponse.data,
+                endpoint: url,
+                error: axiosResponse.status >= 400 ? axiosResponse.statusText : undefined,
+                method: "query",
+                record: undefined,
+                success: axiosResponse.status < 400
+            };
+
+            return apiResult;
+        } catch (error) {
+            const axiosResponse = (error as AxiosError).response;
+
+            const apiResult: IApiResultObject<IPlanhatCompany> = {
+                data: undefined,
+                endpoint: url,
+                error: (error as AxiosError).message,
+                method: "query",
+                record: undefined,
+                success: false
+            };
+
+            if (axiosResponse !== undefined) {
+                apiResult.data = axiosResponse.data;
+                apiResult.error = [ (error as AxiosError).message, axiosResponse.statusText]
+            }
+
+            return apiResult;
+        }
+        
+    }
+
+
+    /**
      * Finds a Planhat company by external ID.
      *
      * @param {string} externalId The external ID of the company.

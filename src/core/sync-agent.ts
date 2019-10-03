@@ -208,9 +208,27 @@ class SyncAgent {
         
         // Process all valid companies and send them to Planhat
         await asyncForEach(envelopesValidated, async (envelope: IOperationEnvelope<IPlanhatCompany>) => {
-            const lookupResult = await this._serviceClient.findCompanyByExternalId((envelope.serviceObject as IPlanhatCompany).externalId as string);
-            if (lookupResult.success && (lookupResult.data as IPlanhatCompany).id !== undefined) {
-                (envelope.serviceObject as IPlanhatCompany).id = (lookupResult.data as IPlanhatCompany).id;
+            let lookupResult: IApiResultObject<IPlanhatCompany> = {
+                success: false,
+                data: null,
+                endpoint: "none",
+                method: "query",
+                record: undefined
+            }
+            
+            if((envelope.serviceObject as IPlanhatCompany).externalId) {
+                lookupResult = await this._serviceClient.findCompanyByExternalId((envelope.serviceObject as IPlanhatCompany).externalId as string);
+            }
+            
+            if (lookupResult.success === false && (envelope.serviceObject as IPlanhatCompany).id) {
+                lookupResult = await this._serviceClient.getCompanyById((envelope.serviceObject as IPlanhatCompany).id as string);
+            }
+
+            // tslint:disable-next-line:no-console
+            console.log(">>> LOOKUP ACCT", lookupResult);
+
+            if (lookupResult.success && (lookupResult.data as IPlanhatCompany)._id !== undefined) {
+                (envelope.serviceObject as IPlanhatCompany).id = (lookupResult.data as IPlanhatCompany)._id;
                 // Update the existing company
                 const updateResult = await this._serviceClient.updateCompany(envelope.serviceObject as IPlanhatCompany);
                 this.handleOutgoingResult(envelope, updateResult, "account");
