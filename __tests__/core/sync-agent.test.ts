@@ -64,7 +64,7 @@ describe('SyncAgent', () => {
     ];
 
     _.forEach(acctScenarios, (scenarioName) => {
-        test('should insert an account', async() => {
+        test(`should handle ${scenarioName}`, async() => {
             const payloadSetupFn: () => any = require(`../_scenarios/${scenarioName}/smart-notifier-payload`).default;
             // tslint:disable-next-line:no-console
             console.log(payloadSetupFn);

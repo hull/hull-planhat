@@ -1,12 +1,13 @@
 import IPrivateSettings, { IMappingEntry } from "../types/private-settings";
 import IHullUserUpdateMessage from "../types/user-update-message";
-import { IPlanhatContact, IPlanhatCompany, IPlanhatEvent } from "../core/planhat-objects";
+import { IPlanhatContact, IPlanhatCompany, IPlanhatEvent, IOperationEnvelope } from "../core/planhat-objects";
 import _ from "lodash";
 import PLANHAT_PROPERTIES from "../core/planhat-properties";
 import IHullAccountUpdateMessage from "../types/account-update-message";
 import IHullUserEvent from "../types/user-event";
 import { IHullUserAttributes } from "../types/user";
-import { IHullAccountAttributes } from "../types/account";
+import IHullAccount, { IHullAccountAttributes } from "../types/account";
+import IApiResultObject from "../types/api-result";
 
 class MappingUtil {
 
@@ -207,6 +208,22 @@ class MappingUtil {
         }
 
         return attributes;
+    }
+
+    /**
+     * Updates all envelopes which have the same Hull account to avoid issues with creating accounts within the same batch.
+     *
+     * @param {Array<IOperationEnvelope<IPlanhatCompany>>} envelopes All valid envelopes.
+     * @param {IOperationEnvelope<IPlanhatCompany>} currentEnvelope The current enevelope.
+     * @param {IApiResultObject<IPlanhatCompany>} updateOrInsertResult The insert or update result of the current envelope's account.
+     * @memberof MappingUtil
+     */
+    public updateEnvelopesWithCompanyId(envelopes: Array<IOperationEnvelope<IPlanhatCompany>>, currentEnvelope: IOperationEnvelope<IPlanhatCompany>, updateOrInsertResult: IApiResultObject<IPlanhatCompany>) {
+        _.forEach(_.filter(envelopes, (e) => {
+            return e.msg.account && e.msg.account.id === (currentEnvelope.msg.account as IHullAccount).id && e.msg.message_id !== currentEnvelope.msg.message_id;
+        }) as Array<IOperationEnvelope<IPlanhatCompany>>, (e: IOperationEnvelope<IPlanhatCompany>) => {
+            _.set(e, "serviceObject.id", _.get(updateOrInsertResult, "data._id", undefined));
+        });
     }
 }
 

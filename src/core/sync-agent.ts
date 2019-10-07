@@ -232,10 +232,16 @@ class SyncAgent {
                 // Update the existing company
                 const updateResult = await this._serviceClient.updateCompany(envelope.serviceObject as IPlanhatCompany);
                 this.handleOutgoingResult(envelope, updateResult, "account");
+                if (updateResult.success) {
+                    this._mappingUtil.updateEnvelopesWithCompanyId(envelopesValidated, envelope, updateResult);
+                }
             } else {
                 // Create a new company
                 const insertResult = await this._serviceClient.createCompany(envelope.serviceObject as IPlanhatCompany);
                 this.handleOutgoingResult(envelope, insertResult, "account");
+                if (insertResult.success) {
+                    this._mappingUtil.updateEnvelopesWithCompanyId(envelopesValidated, envelope, insertResult);
+                }
             }
         });
 

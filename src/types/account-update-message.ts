@@ -6,4 +6,5 @@ export default interface IHullAccountUpdateMessage {
     changes?: IHullUserChanges;
     account_segments: IHullSegment[];
     account?: IHullAccount;
+    message_id: string;
 }

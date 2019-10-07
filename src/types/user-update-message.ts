@@ -10,4 +10,5 @@ export default interface IHullUserUpdateMessage {
     segments: IHullSegment[];
     events: IHullUserEvent[];
     account?: IHullAccount;
+    message_id: string;
 }
