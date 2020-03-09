@@ -211,6 +211,24 @@ class MappingUtil {
     }
 
     /**
+     * Updates all user envelopes which have the same Hull account to avoid issues with creating accounts within the same batch.
+     *
+     * @param {Array<IOperationEnvelope<IPlanhatCompany>>} envelopes All valid envelopes.
+     * @param {IOperationEnvelope<IPlanhatCompany>} currentEnvelope The current enevelope.
+     * @param {IApiResultObject<IPlanhatCompany>} updateOrInsertResult The insert or update result of the current envelope's account.
+     * @memberof MappingUtil
+     */
+    public updateUserEnvelopesWithCompanyId(envelopes: Array<IOperationEnvelope<IPlanhatContact>>, currentEnvelope: IOperationEnvelope<IPlanhatContact>, updateOrInsertResult: IApiResultObject<IPlanhatCompany>) {
+        _.forEach(_.filter(envelopes, (e) => {
+            return e.msg.account && e.msg.account.id === (currentEnvelope.msg.account as IHullAccount).id && e.msg.message_id !== currentEnvelope.msg.message_id;
+        }) as Array<IOperationEnvelope<IPlanhatContact>>, (e: IOperationEnvelope<IPlanhatContact>) => {
+            // tslint:disable-next-line:no-console
+            console.log(e, updateOrInsertResult);
+            _.set(e, "serviceObject.companyId", _.get(updateOrInsertResult, "data._id", undefined));
+        });
+    }
+
+    /**
      * Updates all envelopes which have the same Hull account to avoid issues with creating accounts within the same batch.
      *
      * @param {Array<IOperationEnvelope<IPlanhatCompany>>} envelopes All valid envelopes.
@@ -220,6 +238,8 @@ class MappingUtil {
      */
     public updateEnvelopesWithCompanyId(envelopes: Array<IOperationEnvelope<IPlanhatCompany>>, currentEnvelope: IOperationEnvelope<IPlanhatCompany>, updateOrInsertResult: IApiResultObject<IPlanhatCompany>) {
         _.forEach(_.filter(envelopes, (e) => {
+            // tslint:disable-next-line:no-console
+            console.log(e, currentEnvelope);
             return e.msg.account && e.msg.account.id === (currentEnvelope.msg.account as IHullAccount).id && e.msg.message_id !== currentEnvelope.msg.message_id;
         }) as Array<IOperationEnvelope<IPlanhatCompany>>, (e: IOperationEnvelope<IPlanhatCompany>) => {
             _.set(e, "serviceObject.id", _.get(updateOrInsertResult, "data._id", undefined));

@@ -92,6 +92,7 @@ class SyncAgent {
                         if (acctResult.success === true) {
                             _.set(envelope, "serviceObject.companyId", _.get(acctResult, "data._id", undefined));
                         }
+                        this._mappingUtil.updateUserEnvelopesWithCompanyId(envelopesToProcess, envelope, acctResult);
                         this.handleOutgoingResult(envAcct, acctResult, 'account');
                     }
                 }

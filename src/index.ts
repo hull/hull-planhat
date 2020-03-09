@@ -9,7 +9,7 @@ if (process.env.LOG_LEVEL) {
 
 const config = {
     hostSecret: process.env.SECRET || "SECRET",
-    port: process.env.PORT || 8083,
+    port: process.env.PORT || 8093,
     timeout: process.env.CLIENT_TIMEOUT || "25s"
 };
 

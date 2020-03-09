@@ -10,7 +10,7 @@
     "build:js": "babel src --out-dir build --extensions \".ts,.tsx\" --source-maps inline",
     "lint": "tslint src/**/*.{ts,tsx}",
     "serve-debug": "nodemon --inspect build/index.js",
-    "ngrok": "ngrok http 8083 --subdomain=hull-planhat",
+    "ngrok": "ngrok http 8093 --subdomain=hull-planhat",
     "postinstall": "npm run build:js"
   },
   "repository": {
