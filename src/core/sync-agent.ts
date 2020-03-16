@@ -14,6 +14,8 @@ import IHullAccount, { IHullAccountClaims } from "../types/account";
 import IApiResultObject from "../types/api-result";
 import { HullObjectType } from "../types/common-types";
 import { IHullUserClaims } from "../types/user";
+import { IPlanhatAccountDictionaryItem } from "../types/planhat-account-dict";
+import PatchUtil from "../utils/patch-util";
 
 class SyncAgent {
     private _hullClient: IHullClient;
@@ -23,6 +25,7 @@ class SyncAgent {
     private _mappingUtil: MappingUtil;
     private _canCommunicateWithApi: boolean;
     private _serviceClient: PlanhatClient;
+    private _patchUtil: PatchUtil;
 
     /**
      * Initializes a new class of the SyncAgent.
@@ -33,6 +36,7 @@ class SyncAgent {
         this._connector = connector;
         // Obtain the private settings from the connector and run some basic checks
         const privateSettings: IPrivateSettings = _.get(connector, "private_settings") as IPrivateSettings;
+        privateSettings.account_require_externalid = true; // NOTE: Hardcoded for now to prevent shortcomings in PH API
         this._canCommunicateWithApi = this.canCommunicateWithApi(privateSettings);
         // Initialize the service client
         const svcClientConfig: IPlanhatClientConfig = {
@@ -44,6 +48,7 @@ class SyncAgent {
         // Initialize the utils
         this._filterUtil = new FilterUtil(privateSettings);
         this._mappingUtil = new MappingUtil(privateSettings);
+        this._patchUtil = new PatchUtil(privateSettings);
     }
 
     /**
@@ -66,36 +71,54 @@ class SyncAgent {
         });
 
         if (envelopesToProcess.length === 0) {
-            // TODO: Determine whether we want to log skip because it will
-            //       be filtered anyways by Kraken going forward.
             return Promise.resolve(true);
         }
 
+        // We need an efficient way to handle companies if they don't have a Planhat/ID:
+        // - Create a dictionary with Hull account ids
+        // - Create all accounts which don't have a Planhat/ID
+        // - Do NOT update companies with Planhat/ID
+        // - Update the dictionary to reflect the Planhat/ID
+        const acctDict = this._mappingUtil.mapHullUserEnvelopesToPlanhatAccountDict(envelopesToProcess);
+        await asyncForEach(_.values(acctDict), async (acctInfo: IPlanhatAccountDictionaryItem) => {
+            if (acctInfo.serviceId === undefined && acctInfo.hullExternalId !== undefined) {
+                // Account is not in Planhat yet according to Hull, so we need to create it if it doesn't exist
+                // given the fact that it has an `external_id`.
+                const serviceObjectAcct = this._mappingUtil.mapHullAccountProfileToPlanhatCompany(acctInfo.hullProfile);
+
+                const findResult = await this._serviceClient.findCompanyByExternalId(serviceObjectAcct.externalId as string);
+                if (findResult.data !== null && findResult.data !== undefined && findResult.data.length !== 0 && findResult.success) {
+                    // Found a company, so add the planhat id
+                    const clonedInfo = _.cloneDeep(acctInfo);
+                    clonedInfo.serviceId = (_.first(findResult.data) as IPlanhatCompany)._id;
+                    acctDict[clonedInfo.hullId] = clonedInfo;
+                } else if (findResult.success) {
+                    // No company with the given external_id is present, so create it
+                    const createResult = await this._serviceClient.createCompany(serviceObjectAcct);
+                    const logClient = this._hullClient.asAccount({
+                        id: acctInfo.hullId,
+                        external_id: acctInfo.hullExternalId
+                    });
+
+                    if (createResult.success) {
+                        const clonedInfo = _.cloneDeep(acctInfo);
+                        clonedInfo.serviceId = (createResult.data as IPlanhatCompany)._id;
+                        acctDict[clonedInfo.hullId] = clonedInfo;
+                        logClient.logger.info("outgoing.account.success", createResult);
+                    } else {
+                        // Log the error
+                        logClient.logger.error("outgoing.account.error", createResult);
+                    }
+                }
+            }
+        });
         // Map and validate envelopes
         _.forEach(envelopesToProcess, (envelope: IOperationEnvelope<IPlanhatContact>) => {
             envelope.serviceObject = this._mappingUtil.mapHullUserToPlanhatContact(envelope.msg as IHullUserUpdateMessage);
-        });
-
-        // Process companies since we need the internal id from Planhat to insert the contact
-        await asyncForEach(envelopesToProcess, async (envelope: IOperationEnvelope<IPlanhatContact>) => {
-            if (_.get(envelope, "serviceObject.companyId", undefined) === undefined) {
-                const serviceObjectAcct = this._mappingUtil.mapHullAccountToPlanhatCompany(envelope.msg as IHullAccountUpdateMessage);
-                if(serviceObjectAcct) {
-                    const envAcct: IOperationEnvelope<IPlanhatCompany> | undefined= 
-                        _.first(this._filterUtil.filterCompanyEnvelopes([{
-                            msg: envelope.msg,
-                            operation: "insert",
-                            serviceObject: serviceObjectAcct
-                        }]));
-                    if (envAcct && envAcct.operation === "insert") {
-                        const acctResult = await this._serviceClient.createCompany(envAcct.serviceObject as IPlanhatCompany);
-                        if (acctResult.success === true) {
-                            _.set(envelope, "serviceObject.companyId", _.get(acctResult, "data._id", undefined));
-                        }
-                        this._mappingUtil.updateUserEnvelopesWithCompanyId(envelopesToProcess, envelope, acctResult);
-                        this.handleOutgoingResult(envAcct, acctResult, 'account');
-                    }
-                }
+            // Since we have the companies already been taken care of, let's add them directly here if it is undefined
+            if (envelope.serviceObject.companyId === undefined && envelope.msg.account !== undefined) {
+                const acctInfo = acctDict[envelope.msg.account.id];
+                envelope.serviceObject.companyId = acctInfo.serviceId;
             }
         });
 
@@ -115,16 +138,21 @@ class SyncAgent {
         
         // Process all valid users and send them to Planhat
         await asyncForEach(envelopesValidated, async (envelope: IOperationEnvelope<IPlanhatContact>) => {
+            // NOTE: Lookup only works with email, so we cannot rely on external_id
             const lookupResult = await this._serviceClient.findContactByEmail((envelope.serviceObject as IPlanhatContact).email as string);
-            // tslint:disable-next-line:no-console
-            console.log(">>> LOOKUP RESULT", lookupResult);
-            // tslint:disable-next-line:no-console
-            // console.log(">>> LOOKUP CHECK", lookupResult.success, (_.first(lookupResult.data) as IPlanhatContact)._id !== undefined);
+
             if (lookupResult.success && _.first(lookupResult.data) && (_.first(lookupResult.data) as IPlanhatContact)._id !== undefined) {
                 (envelope.serviceObject as IPlanhatContact).id = (_.first(lookupResult.data) as IPlanhatContact)._id;
-                // Update the existing contact
-                const updateResult = await this._serviceClient.updateContact(envelope.serviceObject as IPlanhatContact);
-                this.handleOutgoingResult(envelope, updateResult, "user");
+                
+                const hasChanges = this._patchUtil.hasUserChangesToUpdate(envelope.serviceObject as IPlanhatContact, _.first(lookupResult.data) as IPlanhatContact);
+                if (hasChanges) {
+                    // Update the existing contact
+                    const updateResult = await this._serviceClient.updateContact(envelope.serviceObject as IPlanhatContact);
+                    this.handleOutgoingResult(envelope, updateResult, "user");
+                } else {
+                    this._hullClient.asUser((envelope.msg as IHullUserUpdateMessage).user)
+                        .logger.info("outgoing.user.skip", { reason: "All mapped attributes are already in sync between Hull and Planhat." });
+                }
             } else {
                 // Create a new contact
                 const insertResult = await this._serviceClient.createContact(envelope.serviceObject as IPlanhatContact);
@@ -225,16 +253,21 @@ class SyncAgent {
                 lookupResult = await this._serviceClient.getCompanyById((envelope.serviceObject as IPlanhatCompany).id as string);
             }
 
-            // tslint:disable-next-line:no-console
-            console.log(">>> LOOKUP ACCT", lookupResult);
-
-            if (lookupResult.success && (lookupResult.data as IPlanhatCompany)._id !== undefined) {
-                (envelope.serviceObject as IPlanhatCompany).id = (lookupResult.data as IPlanhatCompany)._id;
+            if (lookupResult.success && (_.first(lookupResult.data) as IPlanhatCompany)._id !== undefined) {
+                (envelope.serviceObject as IPlanhatCompany).id = (_.first(lookupResult.data) as IPlanhatCompany)._id;
                 // Update the existing company
-                const updateResult = await this._serviceClient.updateCompany(envelope.serviceObject as IPlanhatCompany);
-                this.handleOutgoingResult(envelope, updateResult, "account");
-                if (updateResult.success) {
-                    this._mappingUtil.updateEnvelopesWithCompanyId(envelopesValidated, envelope, updateResult);
+                const hasChanges = this._patchUtil.hasCompanyChangesToUpdate(envelope.serviceObject as IPlanhatCompany, _.first(lookupResult.data) as IPlanhatCompany);
+                if(hasChanges) {
+                    const updateResult = await this._serviceClient.updateCompany(envelope.serviceObject as IPlanhatCompany);
+                    this.handleOutgoingResult(envelope, updateResult, "account");
+                    if (updateResult.success) {
+                        this._mappingUtil.updateEnvelopesWithCompanyId(envelopesValidated, envelope, updateResult);
+                    }
+                } else {
+                    this._hullClient.asAccount(envelope.msg.account as IHullAccountClaims).logger.log(
+                        "outgoing.account.skip", {
+                        reason: "All mapped attributes are already in sync between Hull and Planhat."
+                    });
                 }
             } else {
                 // Create a new company

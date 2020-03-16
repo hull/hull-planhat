@@ -3,8 +3,6 @@ import PLANHAT_PROPERTIES from "../core/planhat-properties";
 import IFieldsSchema from "../types/fields-schema";
 
 const fieldsSchemaAction = (req: any, res: any) => {
-    // tslint:disable-next-line:no-console
-    console.log(_.get(req, "params.type", "unknown"));
     const type: string = _.get(req, "params.type", "unknown");
     const payload: IFieldsSchema = {
         ok: false,

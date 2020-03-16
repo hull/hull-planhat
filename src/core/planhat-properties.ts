@@ -1,6 +1,5 @@
 const PLANHAT_PROPERTIES = {
     CONTACTS: {
-        companyId: "Company id (*)",
         companyName: "Company name",
         createDate: "Date created",
         externalId: "External id",
@@ -14,7 +13,6 @@ const PLANHAT_PROPERTIES = {
     COMPANIES: {
         name: "Name (*)",
         slug: "Slug",
-        externalId: "External id",
         phase: "Lifecycle phase",
         tags: "Tags"
     }

@@ -9,7 +9,7 @@
     "description": "Synchronize Hull accounts with Planhat and forward user events.",
     "readme": "readme.md",
     "tabs": [],
-    "version": "0.1.0",
+    "version": "0.1.1",
     "source": "planhat",
     "logo": "logo.png",
     "ui": false,
@@ -59,7 +59,6 @@
             "type" : "array",
             "format" : "table",
             "default" : [
-              { "hull_field_name" : "account.external_id", "service_field_name" : "Company id (*)" },
               { "hull_field_name" : "name", "service_field_name" : "Full name" },
               { "hull_field_name" : "email", "service_field_name" : "Email" }
             ],
@@ -85,7 +84,32 @@
                 "service_field_name"
               ]
             }
-          },
+        },
+        {
+          "name" : "contact_custom_attributes_outbound",
+          "title" : "User custom attributes mapping",
+          "type" : "array",
+          "format" : "table",
+          "default": [],
+          "items": {
+            "type" : "object",
+            "properties" : {
+              "hull_field_name" : {
+                "type" : "string",
+                "format" : "trait",
+                "title" : "Hull Attribute"
+              }, 
+              "service_field_name": {
+                "type": "string",
+                "title": "Custom Attribute Name"
+              }
+            },
+            "required" : [
+              "hull_field_name",
+              "service_field_name"
+            ]
+          }
+        },
         {
             "name": "heading_account_configuration",
             "type": "string",
@@ -104,7 +128,7 @@
             "name": "account_require_externalid",
             "title": "Require `external_id` to synchronize?",
             "type": "boolean",
-            "default": false
+            "default": true
         },
         {
             "name" : "account_attributes_outbound",
@@ -136,6 +160,31 @@
                 "service_field_name"
               ]
             }
+          },
+          {
+            "name" : "account_custom_attributes_outbound",
+            "title" : "Account custom attributes mapping",
+            "type" : "array",
+            "format" : "table",
+            "default" : [ ],
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "hull_field_name" : {
+                  "type" : "string",
+                  "format" : "accountTrait",
+                  "title" : "Hull Attribute"
+                },
+                "service_field_name" : {
+                  "type" : "string",
+                  "title" : "Custom Attribute Name"
+                }
+              },
+              "required" : [
+                "hull_field_name",
+                "service_field_name"
+              ]
+            }
           }
     ],
     "schedules": [],
@@ -160,6 +209,7 @@
             "properties": [
               "private_settings.contact_synchronized_segments",
               "private_settings.contact_attributes_outbound",
+              "private_settings.contact_custom_attributes_outbound",
               "private_settings.contact_events"
             ]
         },
@@ -168,8 +218,8 @@
             "description": "How we send Accounts as Planhat Companies",
             "properties": [
               "private_settings.account_synchronized_segments",
-              "private_settings.account_require_externalid",
-              "private_settings.account_attributes_outbound"
+              "private_settings.account_attributes_outbound",
+              "private_settings.account_custom_attributes_outbound"
             ]
         }
     ]
