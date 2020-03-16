@@ -8,6 +8,7 @@ import IHullUserEvent from "../types/user-event";
 import { IHullUserAttributes } from "../types/user";
 import IHullAccount, { IHullAccountAttributes } from "../types/account";
 import IApiResultObject from "../types/api-result";
+import { IPlanhatAccountDictionary } from "../types/planhat-account-dict";
 
 class MappingUtil {
 
@@ -54,7 +55,18 @@ class MappingUtil {
         // so we need to overwrite legacy configurations
         _.set(serviceObject, "companyId", _.get(message, 'account.planhat.id', undefined));
 
-        // TODO: Map custom attributes
+        // Map custom attributes
+        const mappingsCustom = this._connectorSettings.contact_custom_attributes_outbound;
+        _.forEach(mappingsCustom, (mapping: IMappingEntry) => {
+            if (mapping.service_field_name !== undefined &&
+                _.trim(mapping.service_field_name).length !== 0) {
+                const sanitizedName = _.trim(mapping.service_field_name);
+                const messageProperty: string = _.startsWith(mapping.hull_field_name, "account.") ?
+                                        (mapping.hull_field_name as string):
+                                        `user.${mapping.hull_field_name}`;
+                _.set(serviceObject, `custom.${sanitizedName}`, _.get(message, messageProperty, undefined));
+            }
+        });
 
         // Remove all undefined values from the resulting object
         return _.pickBy(serviceObject, (v: any, k: string) => {
@@ -63,6 +75,35 @@ class MappingUtil {
             }
             return _.identity(v);
         }) as IPlanhatContact;
+    }
+
+    /**
+     * Maps all hull user envelopes to the Planhat account dictionary.
+     *
+     * @param {Array<IOperationEnvelope<IPlanhatContact>>} envelopes The envelopes to process
+     * @returns {IPlanhatAccountDictionary} The resulting dictionary
+     * @memberof MappingUtil
+     */
+    public mapHullUserEnvelopesToPlanhatAccountDict(envelopes: Array<IOperationEnvelope<IPlanhatContact>>): IPlanhatAccountDictionary {
+        const dict: IPlanhatAccountDictionary = {};
+        
+        envelopes.forEach(envleope => {
+            const msg = envleope.msg as IHullUserUpdateMessage;
+            const hullId = _.get(msg, "account.id", undefined);
+            const hullExternalId = _.get(msg, "account.external_id", undefined);
+            const serviceId = _.get(msg, "account.planhat.id", undefined);
+            if (_.get(dict, hullId, undefined) === undefined &&
+                msg.account !== undefined) {
+                dict[hullId] = {
+                    hullId,
+                    hullExternalId,
+                    serviceId,
+                    hullProfile: msg.account
+                };
+            }
+        });
+
+        return dict;
     }
 
     /**
@@ -129,7 +170,6 @@ class MappingUtil {
         _.forEach(mappings, (mapping: IMappingEntry) => {
             if (mapping.service_field_name !== undefined &&
                 _.get(mappedServiceProps, mapping.service_field_name, undefined) !== undefined) {
-                // For accounts we can don't need any prefixing action here:
                 const messageProperty: string = `account.${mapping.hull_field_name as string}`;
                 // Make sure we have a consistent `undefined` if no data is present,
                 // so we can rely on it for reducing the object
@@ -140,11 +180,80 @@ class MappingUtil {
             }
         });
 
-        // TODO: Map custom attributes
+        // Map custom attributes
+        const mappingsCustom = this._connectorSettings.account_custom_attributes_outbound;
+        _.forEach(mappingsCustom, (mapping: IMappingEntry) => {
+            if (mapping.service_field_name !== undefined &&
+                _.trim(mapping.service_field_name).length !== 0) {
+                const sanitizedName = _.trim(mapping.service_field_name);
+                const messageProperty: string = `account.${mapping.hull_field_name}`;
+                _.set(serviceObject, `custom.${sanitizedName}`, _.get(message, messageProperty, undefined));
+            }
+        });
+
+        // Make sure we have the `external_id` set
+        if (_.get(serviceObject, "externalId", undefined) === undefined) {
+            _.set(serviceObject, "externalId", _.get(message, "account.external_id", undefined));
+        }
 
         // Add the id if present
         if(_.get(message, "account.planhat.id", undefined) !== undefined) {
             _.set(serviceObject, "id", _.get(message, "account.planhat.id"));
+        }
+
+        // Remove all undefined values from the resulting object
+        return _.pickBy(serviceObject, (v: any, k: string) => {
+            if (k === "name") { // only required field
+                return true;
+            }
+            return _.identity(v);
+        }) as IPlanhatCompany;
+    }
+
+    public mapHullAccountProfileToPlanhatCompany(account: IHullAccount): IPlanhatCompany {
+        // Map the service props so we can look them up
+        const mappedServiceProps = {};
+        _.forIn(PLANHAT_PROPERTIES.COMPANIES, (v: string, k: string) => {
+            _.set(mappedServiceProps, k, v);
+        });
+        // Instantiate ref
+        const serviceObject: IPlanhatCompany = {
+            name: undefined
+        }
+        // Map all standard attributes
+        const mappings = this._connectorSettings.account_attributes_outbound;
+        _.forEach(mappings, (mapping: IMappingEntry) => {
+            if (mapping.service_field_name !== undefined &&
+                _.get(mappedServiceProps, mapping.service_field_name, undefined) !== undefined) {
+                const profileProperty: string = `${mapping.hull_field_name as string}`;
+                // Make sure we have a consistent `undefined` if no data is present,
+                // so we can rely on it for reducing the object
+                _.set(serviceObject, 
+                      mapping.service_field_name,
+                      _.get(account, profileProperty, undefined)
+                    );
+            }
+        });
+
+        // Map custom attributes
+        const mappingsCustom = this._connectorSettings.account_custom_attributes_outbound;
+        _.forEach(mappingsCustom, (mapping: IMappingEntry) => {
+            if (mapping.service_field_name !== undefined &&
+                _.trim(mapping.service_field_name).length !== 0) {
+                const sanitizedName = _.trim(mapping.service_field_name);
+                const profileProperty: string = `${mapping.hull_field_name}`;
+                _.set(serviceObject, `custom.${sanitizedName}`, _.get(account, profileProperty, undefined));
+            }
+        });
+
+        // Make sure we have the `external_id` set
+        if (_.get(serviceObject, "externalId", undefined) === undefined) {
+            _.set(serviceObject, "externalId", _.get(account, "external_id", undefined));
+        }
+
+        // Add the id if present
+        if(_.get(account, "planhat.id", undefined) !== undefined) {
+            _.set(serviceObject, "id", _.get(account, "planhat.id"));
         }
 
         // Remove all undefined values from the resulting object
@@ -222,8 +331,6 @@ class MappingUtil {
         _.forEach(_.filter(envelopes, (e) => {
             return e.msg.account && e.msg.account.id === (currentEnvelope.msg.account as IHullAccount).id && e.msg.message_id !== currentEnvelope.msg.message_id;
         }) as Array<IOperationEnvelope<IPlanhatContact>>, (e: IOperationEnvelope<IPlanhatContact>) => {
-            // tslint:disable-next-line:no-console
-            console.log(e, updateOrInsertResult);
             _.set(e, "serviceObject.companyId", _.get(updateOrInsertResult, "data._id", undefined));
         });
     }
@@ -238,8 +345,6 @@ class MappingUtil {
      */
     public updateEnvelopesWithCompanyId(envelopes: Array<IOperationEnvelope<IPlanhatCompany>>, currentEnvelope: IOperationEnvelope<IPlanhatCompany>, updateOrInsertResult: IApiResultObject<IPlanhatCompany>) {
         _.forEach(_.filter(envelopes, (e) => {
-            // tslint:disable-next-line:no-console
-            console.log(e, currentEnvelope);
             return e.msg.account && e.msg.account.id === (currentEnvelope.msg.account as IHullAccount).id && e.msg.message_id !== currentEnvelope.msg.message_id;
         }) as Array<IOperationEnvelope<IPlanhatCompany>>, (e: IOperationEnvelope<IPlanhatCompany>) => {
             _.set(e, "serviceObject.id", _.get(updateOrInsertResult, "data._id", undefined));

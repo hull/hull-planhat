@@ -13,4 +13,6 @@ export default interface IPrivateSettings {
     account_synchronized_segments: string[];
     account_require_externalid: boolean;
     account_attributes_outbound: IMappingEntry[];
+    contact_custom_attributes_outbound: IMappingEntry[];
+    account_custom_attributes_outbound: IMappingEntry[];
 }

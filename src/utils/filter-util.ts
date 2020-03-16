@@ -79,7 +79,7 @@ class FilterUtil {
 
     public filterMessagesWithEvent(messages: IHullUserUpdateMessage[]): IHullUserUpdateMessage[] {
         const filteredMessages = _.filter(messages, (m: IHullUserUpdateMessage) => {
-            if (m.events.length === 0) {
+            if (!m.events || (m.events && m.events.length === 0)) {
                 return false;
             }
             return _.some(m.events, (e: IHullUserEvent) => _.includes(this._contactEvents, e.event));
