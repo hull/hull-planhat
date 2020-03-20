@@ -62,6 +62,8 @@ typings/
 
 #build
 /build
+/build-types
+/dist
 
 #VSCodeCounter
 /.VSCodeCounter
