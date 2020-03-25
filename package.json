@@ -26,7 +26,7 @@
     "start": "pm2-runtime start ecosystem.config.js",
     "start--dev": "NODE_ENV=development npm run start",
     "start--dev--watch": "NODE_ENV=development npm run start-src--watch",
-    "start-src": "babel-node --extensions .js,.jsx,.ts,.tsx --require node_modules/dotenv/config src/server.ts",
+    "start-src": "babel-node --extensions .js,.jsx,.ts,.tsx --require ./node_modules/dotenv/config ./src/index.ts",
     "start-src--watch": "nodemon --ext js,jsx,ts,tsx --delay 1 --exec npm run start-src",
     "test": "jest --env=node --colors --coverage --no-cache",
     "test--watch": "jest --watch",
@@ -54,11 +54,12 @@
   "homepage": "https://github.com/SMK1085/hull-planhat#readme",
   "dependencies": {
     "axios": "^0.19.2",
-    "bluebird": "^3.7.2",
     "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "hull": "^0.13.20",
     "lodash": "^4.17.15",
+    "luxon": "^1.22.0",
     "newrelic": "^5.13.1",
     "pm2": "^3.5.1",
     "winston": "^3.2.1"
@@ -66,6 +67,7 @@
   "devDependencies": {
     "@babel/cli": "^7.8.4",
     "@babel/core": "^7.9.0",
+    "@babel/node": "7.8.7",
     "@babel/plugin-proposal-class-properties": "7.4.4",
     "@babel/plugin-transform-runtime": "^7.9.0",
     "@babel/preset-env": "7.4.5",

@@ -1,5 +1,10 @@
 {
-    "tslint.autoFixOnSave": true,
-    "jest.pathToConfig": "./jest.config.js",
-    "peacock.color": "#2096f3"
+  "eslint.enable": true,
+  "tslint.enable": false,
+  "jest.pathToConfig": "./jest.config.js",
+  "peacock.color": "#2096f3",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "editor.formatOnSave": true
 }
