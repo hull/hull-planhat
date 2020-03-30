@@ -68,7 +68,7 @@ class SyncAgent {
     };
     this._serviceClient = new PlanhatClient(svcClientConfig);
     // Initialize the utils
-    this._filterUtil = new FilterUtil(this._privateSettings);
+    this._filterUtil = new FilterUtil(this._privateSettings, []);
     this._mappingUtil = new MappingUtil(this._privateSettings);
     this._patchUtil = new PatchUtil(this._privateSettings);
   }
@@ -88,6 +88,10 @@ class SyncAgent {
     if (this._canCommunicateWithApi === false) {
       return Promise.resolve(true);
     }
+
+    // Note: We need to query the users once here and update the utils with the values
+    const planhatUsersResult = await this._serviceClient.listUsers();
+    this._filterUtil.setPlanhatUsers(planhatUsersResult.data);
 
     // Filter messages based on connector configuration
     const filteredEnvelopes = this._filterUtil.filterUserMessages(

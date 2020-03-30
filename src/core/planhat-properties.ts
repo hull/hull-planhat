@@ -13,6 +13,8 @@ const PLANHAT_PROPERTIES = {
   COMPANIES: {
     name: "Name (*)",
     slug: "Slug",
+    owner: "Owner",
+    coOwner: "Co-Owner",
     phase: "Lifecycle phase",
     tags: "Tags",
   },
