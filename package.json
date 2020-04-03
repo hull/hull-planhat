@@ -1,6 +1,6 @@
 {
   "name": "hull-planhat",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Hull connector for planhat.com",
   "main": "index.ts",
   "scripts": {

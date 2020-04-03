@@ -4,7 +4,7 @@
   "description": "Synchronize Hull accounts with Planhat and forward user events.",
   "readme": "readme.md",
   "tabs": [],
-  "version": "0.1.2",
+  "version": "0.1.3",
   "source": "planhat",
   "logo": "logo.png",
   "ui": false,

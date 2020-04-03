@@ -126,7 +126,16 @@ export const createUser = async (
     const svcClient = instantiateServiceClient(req);
     const apiResult = await svcClient.createUser(data);
 
-    // TODO: Handle caching
+    // Bust the cache
+    const redisClient = new ConnectorRedisClient(
+      redisOpts,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (req as any).hull.client.logger,
+    );
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const connector: any = (req as any).hull.ship;
+    await redisClient.delete(`users_${connector.id}`);
 
     res.json(_.get(apiResult, "data", undefined));
     return Promise.resolve(true);
@@ -160,7 +169,16 @@ export const updateUser = async (
     const svcClient = instantiateServiceClient(req);
     const apiResult = await svcClient.updateUser(id, data);
 
-    // TODO: Add caching
+    // Bust the cache
+    const redisClient = new ConnectorRedisClient(
+      redisOpts,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (req as any).hull.client.logger,
+    );
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const connector: any = (req as any).hull.ship;
+    await redisClient.delete(`users_${connector.id}`);
 
     res.json(_.get(apiResult, "data", undefined));
     return Promise.resolve(true);
