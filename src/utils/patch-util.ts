@@ -22,7 +22,40 @@ class PatchUtil {
           _.get(updatedObj, mapping.service_field_name as string, undefined) !==
           _.get(currentObj, mapping.service_field_name as string, undefined)
         ) {
-          hasUpdate = true;
+          if (
+            mapping.service_field_name === "name" &&
+            _.get(
+              updatedObj,
+              mapping.service_field_name as string,
+              "",
+            ).toLowerCase() !==
+              _.get(
+                currentObj,
+                mapping.service_field_name as string,
+                "",
+              ).toLowerCase()
+          ) {
+            hasUpdate = true;
+          } else if (mapping.service_field_name !== "name") {
+            hasUpdate = true;
+            const valToUpdate = _.get(
+              updatedObj,
+              mapping.service_field_name as string,
+              undefined,
+            );
+            const valCurrent = _.get(
+              currentObj,
+              mapping.service_field_name as string,
+              undefined,
+            );
+            // eslint-disable-next-line no-console
+            console.log(
+              `${
+                mapping.service_field_name
+              }: ${valToUpdate} -> ${valCurrent} (equal? ${valToUpdate ===
+                valCurrent})`,
+            );
+          }
         }
       },
     );
@@ -40,6 +73,23 @@ class PatchUtil {
           _.get(currentObj, `custom.${mapping.service_field_name}`, undefined)
         ) {
           hasUpdate = true;
+          const valToUpdate = _.get(
+            updatedObj,
+            `custom.${mapping.service_field_name}`,
+            undefined,
+          );
+          const valCurrent = _.get(
+            currentObj,
+            `custom.${mapping.service_field_name}`,
+            undefined,
+          );
+          // eslint-disable-next-line no-console
+          console.log(
+            `${
+              mapping.service_field_name
+            }: ${valToUpdate} -> ${valCurrent} (equal? ${valToUpdate ===
+              valCurrent})`,
+          );
         }
       },
     );

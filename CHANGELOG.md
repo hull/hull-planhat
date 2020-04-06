@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.1.4 [BETA]
+
+- [bugfix] Added `batch-accounts` to manifest which allows manual batch operations for accounts
+- [bugfix] Immediately store account result in Hull when synchronizing accounts out to Planhat
+- [bugfix] Case-insensitive comparison of name for users by patch-util to avoid alteration by Planhat
+
 ## Version 0.1.3 [BETA]
 
 - [feature] Added cache buster to create and update endpoints

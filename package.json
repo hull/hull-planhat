@@ -1,6 +1,6 @@
 {
   "name": "hull-planhat",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Hull connector for planhat.com",
   "main": "index.ts",
   "scripts": {
@@ -23,6 +23,7 @@
     "lint-eslint": "eslint --cache --ext .js,.jsx,.ts,.tsx --format=pretty ./",
     "lint-markdown": "markdownlint --ignore coverage --ignore dist --ignore node_modules '**/*.md' '.**/**/*.md'",
     "ngrok": "ngrok http 8093 --subdomain=hull-planhat",
+    "ngrokfree": "ngrok http 8093",
     "start": "pm2-runtime start ecosystem.config.js",
     "start--dev": "NODE_ENV=development npm run start",
     "start--dev--watch": "NODE_ENV=development npm run start-src--watch",

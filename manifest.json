@@ -1,10 +1,16 @@
 {
   "name": "Planhat [BETA]",
-  "tags": ["outgoing", "oneColumn", "batch", "smart-notifier"],
+  "tags": [
+    "outgoing",
+    "oneColumn",
+    "batch",
+    "batch-accounts",
+    "smart-notifier"
+  ],
   "description": "Synchronize Hull accounts with Planhat and forward user events.",
   "readme": "readme.md",
   "tabs": [],
-  "version": "0.1.3",
+  "version": "0.1.4",
   "source": "planhat",
   "logo": "logo.png",
   "ui": false,
