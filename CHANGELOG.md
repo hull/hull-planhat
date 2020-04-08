@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.1.5 [BETA]
+
+- [bugfix] Add batch handler with proper initialization for accounts
+- [bugfix] Load Planhat users also on account lane handler
+
 ## Version 0.1.4 [BETA]
 
 - [bugfix] Added `batch-accounts` to manifest which allows manual batch operations for accounts

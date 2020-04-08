@@ -323,6 +323,10 @@ class SyncAgent {
       return Promise.resolve(true);
     }
 
+    // Note: We need to query the users once here and update the utils with the values
+    const planhatUsersResult = await this._serviceClient.listUsers();
+    this._filterUtil.setPlanhatUsers(planhatUsersResult.data);
+
     try {
       // Filter messages based on connector configuration
       const filteredEnvelopes = this._filterUtil.filterAccountMessages(
@@ -509,12 +513,12 @@ class SyncAgent {
       scopedClient.logger.info(`outgoing.${hullType}.success`, operationResult);
 
       if (hullType === "account") {
-        return scopedClient.traits(
-          this._mappingUtil.mapPlanhatCompanyToAccountAttributes(
-            operationResult.data,
-          ),
+        const accountAttributes = this._mappingUtil.mapPlanhatCompanyToAccountAttributes(
+          operationResult.data,
         );
+        return scopedClient.traits(accountAttributes);
       }
+
       if (hullType === "user") {
         return scopedClient.traits(
           this._mappingUtil.mapPlanhatContactToUserAttributes(

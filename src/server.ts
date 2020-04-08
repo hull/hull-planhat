@@ -46,6 +46,7 @@ const server = (app: Application): Application => {
       },
       handlers: {
         "user:update": actions.userUpdate({ isBatch: true }),
+        "account:update": actions.accountUpdate({ isBatch: true }),
       },
     }),
   );
