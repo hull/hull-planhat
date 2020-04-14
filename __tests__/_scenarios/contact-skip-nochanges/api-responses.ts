@@ -51,9 +51,9 @@ const setupApiMockResponses = (
       beatsTotal: 0,
       experience: 0,
       companyId: "1234",
-      name: "J Miller",
+      name: "John Miller",
       email: "test1@hull.io",
-      firstName: "J",
+      firstName: "John",
       lastName: "Miller",
       companyName: "Test 1234 Inc.",
       createDate: "2019-09-18T08:30:32.032Z",
@@ -68,11 +68,6 @@ const setupApiMockResponses = (
     .matchHeader("authorization", `Bearer ${PERSONAL_ACCESS_TOKEN}`)
     .get(`/endusers?email=${dataCreatedContact.email}`)
     .reply(200, dataSearch, { "Content-Type": "application/json" });
-
-  nockFn(`https://${API_PREFIX}.planhat.com`)
-    .matchHeader("authorization", `Bearer ${PERSONAL_ACCESS_TOKEN}`)
-    .put("/endusers/5d81eb28aeeafc7a74d8f999")
-    .reply(200, dataCreatedContact, { "Content-Type": "application/json" });
 
   nockFn(`https://${API_PREFIX}.planhat.com`)
     .matchHeader("authorization", `Bearer ${PERSONAL_ACCESS_TOKEN}`)

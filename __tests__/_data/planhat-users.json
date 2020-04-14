@@ -1,0 +1,175 @@
+[
+  {
+    "_id": "39a44fdef9324bc092405e024b3b3584",
+    "image": {
+      "path": ""
+    },
+    "firstName": "Dave",
+    "lastName": "Claxo",
+    "isHidden": false,
+    "removed": false,
+    "inactive": false,
+    "compressedView": false,
+    "taskFilter": "",
+    "workflowFilter": "",
+    "playLogDisabled": true,
+    "radarOneLine": false,
+    "revReportPeriodType": "past x days",
+    "splitLayoutDisabled": false,
+    "dailyDigest": true,
+    "followerUpdate": true,
+    "inAppNotifications": true,
+    "roles": [
+      {
+        "_id": "000000000000000000000000",
+        "name": "Administrator",
+        "description": "Full access, including ability to edit users and settings"
+      }
+    ],
+    "poc": ["Agreement", "Data", "Technical"],
+    "isExposedAsSenderOption": false,
+    "defaultMeetingLength": 60,
+    "nickName": "Dave",
+    "email": "dave@example.org",
+    "createDate": "2019-08-01T11:39:24.025Z",
+    "__v": 0,
+    "googleApi": {
+      "accessEnabled": false,
+      "syncEnabled": false,
+      "syncInitial": false,
+      "syncedLabels": []
+    },
+    "msApi": {
+      "accessEnabled": false,
+      "syncEnabled": false,
+      "syncInitial": false,
+      "syncedLabels": []
+    },
+    "googleCalendarApi": {
+      "accessEnabled": false,
+      "syncEnabled": false,
+      "syncInitial": false,
+      "syncedCalendars": [],
+      "calendarToSave": {}
+    }
+  },
+  {
+    "_id": "4411acb113114618ab3a923fb7425a72",
+    "image": {
+      "path": ""
+    },
+    "firstName": "Mike",
+    "lastName": "Klein",
+    "isHidden": false,
+    "removed": false,
+    "inactive": false,
+    "compressedView": false,
+    "taskFilter": "",
+    "workflowFilter": "",
+    "playLogDisabled": true,
+    "radarOneLine": false,
+    "revReportPeriodType": "past x days",
+    "splitLayoutDisabled": false,
+    "dailyDigest": true,
+    "followerUpdate": true,
+    "inAppNotifications": true,
+    "roles": [
+      {
+        "_id": "000000000000000000000000",
+        "name": "Administrator",
+        "description": "Full access, including ability to edit users and settings"
+      },
+      {
+        "_id": "000000020000000000000000",
+        "name": "Manager",
+        "description": "Access to the entire portfolio, and all functionality"
+      },
+      {
+        "_id": "000000030000000000000000",
+        "name": "Developer",
+        "description": "Access to API keys, error pages etc"
+      }
+    ],
+    "poc": ["Agreement", "Data"],
+    "isExposedAsSenderOption": false,
+    "defaultMeetingLength": 60,
+    "nickName": "Mike",
+    "email": "mike@example.org",
+    "createDate": "2019-08-01T11:39:24.298Z",
+    "__v": 1,
+    "permissions": {},
+    "googleApi": {
+      "accessEnabled": false,
+      "syncEnabled": false,
+      "syncInitial": false,
+      "syncedLabels": []
+    },
+    "msApi": {
+      "accessEnabled": false,
+      "syncEnabled": false,
+      "syncInitial": false,
+      "syncedLabels": []
+    },
+    "googleCalendarApi": {
+      "accessEnabled": false,
+      "syncEnabled": false,
+      "syncInitial": false,
+      "syncedCalendars": [],
+      "calendarToSave": {}
+    }
+  },
+  {
+    "_id": "4ab1e457c81843e8b710741eb8a1ed33",
+    "image": {
+      "path": ""
+    },
+    "firstName": "Daniela",
+    "lastName": "Ruah",
+    "isHidden": false,
+    "removed": false,
+    "inactive": false,
+    "compressedView": false,
+    "taskFilter": "",
+    "workflowFilter": "",
+    "playLogDisabled": true,
+    "radarOneLine": false,
+    "revReportPeriodType": "past x days",
+    "splitLayoutDisabled": false,
+    "dailyDigest": true,
+    "followerUpdate": true,
+    "inAppNotifications": true,
+    "roles": [
+      {
+        "_id": "000000000000000000000000",
+        "name": "Administrator",
+        "description": "Full access, including ability to edit users and settings"
+      }
+    ],
+    "poc": [],
+    "isExposedAsSenderOption": false,
+    "defaultMeetingLength": 60,
+    "nickName": "Daniela",
+    "email": "daniela@example.tech",
+    "createDate": "2019-08-01T11:39:24.860Z",
+    "__v": 0,
+    "googleApi": {
+      "accessEnabled": false,
+      "syncEnabled": false,
+      "syncInitial": false,
+      "syncedLabels": []
+    },
+    "msApi": {
+      "accessEnabled": false,
+      "syncEnabled": false,
+      "syncInitial": false,
+      "syncedLabels": []
+    },
+    "googleCalendarApi": {
+      "accessEnabled": false,
+      "syncEnabled": false,
+      "syncInitial": false,
+      "syncedCalendars": [],
+      "calendarToSave": {}
+    }
+  }
+]

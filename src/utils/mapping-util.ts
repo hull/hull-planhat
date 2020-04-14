@@ -292,7 +292,7 @@ class MappingUtil {
     // Map the service props so we can look them up
     const mappedServiceProps = {};
     _.forIn(PLANHAT_PROPERTIES.COMPANIES, (v: string, k: string) => {
-      _.set(mappedServiceProps, k, v);
+      _.set(mappedServiceProps, v, k);
     });
     // Instantiate ref
     const serviceObject: IPlanhatCompany = {
@@ -306,12 +306,12 @@ class MappingUtil {
         _.get(mappedServiceProps, mapping.service_field_name, undefined) !==
           undefined
       ) {
-        const profileProperty = `${mapping.hull_field_name as string}`;
+        const profileProperty = `${mapping.hull_field_name}`;
         // Make sure we have a consistent `undefined` if no data is present,
         // so we can rely on it for reducing the object
         _.set(
           serviceObject,
-          mapping.service_field_name,
+          _.get(mappedServiceProps, mapping.service_field_name),
           _.get(account, profileProperty, undefined),
         );
       }

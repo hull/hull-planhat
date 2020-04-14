@@ -1,3 +1,4 @@
+import _ from "lodash";
 import axios, { AxiosRequestConfig, AxiosError } from "axios";
 import {
   IPlanhatContact,
@@ -415,10 +416,10 @@ class PlanhatClient {
 
       if (axiosResponse !== undefined) {
         apiResult.data = axiosResponse.data;
-        apiResult.error = [
+        apiResult.error = _.compact([
           (error as AxiosError).message,
           axiosResponse.statusText,
-        ];
+        ]);
       }
 
       return apiResult;

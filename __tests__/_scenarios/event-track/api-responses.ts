@@ -1,6 +1,10 @@
 import nock from "nock";
 import { Url } from "url";
-import { API_PREFIX, PERSONAL_ACCESS_TOKEN } from "../../_helpers/constants";
+import {
+  API_PREFIX,
+  PERSONAL_ACCESS_TOKEN,
+  TENANT_ID,
+} from "../../_helpers/constants";
 import { IPlanhatContact } from "../../../src/core/planhat-objects";
 import planhatUsersResponse from "../../_data/planhat-users.json";
 
@@ -51,9 +55,9 @@ const setupApiMockResponses = (
       beatsTotal: 0,
       experience: 0,
       companyId: "1234",
-      name: "J Miller",
+      name: "John Miller",
       email: "test1@hull.io",
-      firstName: "J",
+      firstName: "John",
       lastName: "Miller",
       companyName: "Test 1234 Inc.",
       createDate: "2019-09-18T08:30:32.032Z",
@@ -71,13 +75,13 @@ const setupApiMockResponses = (
 
   nockFn(`https://${API_PREFIX}.planhat.com`)
     .matchHeader("authorization", `Bearer ${PERSONAL_ACCESS_TOKEN}`)
-    .put("/endusers/5d81eb28aeeafc7a74d8f999")
-    .reply(200, dataCreatedContact, { "Content-Type": "application/json" });
-
-  nockFn(`https://${API_PREFIX}.planhat.com`)
-    .matchHeader("authorization", `Bearer ${PERSONAL_ACCESS_TOKEN}`)
     .get("/users")
     .reply(200, planhatUsersResponse, { "Content-Type": "application/json" });
+
+  nockFn(`https://analytics.planhat.com`)
+    .matchHeader("authorization", `Bearer ${PERSONAL_ACCESS_TOKEN}`)
+    .post(`/analytics/${TENANT_ID}`)
+    .reply(200);
 };
 
 // eslint-disable-next-line import/no-default-export

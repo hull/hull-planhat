@@ -36,48 +36,22 @@ const setupApiMockResponses = (
     __v: 0,
   };
 
-  const dataSearch = [
-    {
-      _id: "5d81eb28aeeafc7a74d8f999",
-      otherEmails: [],
-      featured: false,
-      tags: [],
-      personas: [],
-      npsUnsubscribed: false,
-      beatTrend: 0,
-      beats: 0,
-      convs14: 0,
-      convsTotal: 0,
-      beatsTotal: 0,
-      experience: 0,
-      companyId: "1234",
-      name: "J Miller",
-      email: "test1@hull.io",
-      firstName: "J",
-      lastName: "Miller",
-      companyName: "Test 1234 Inc.",
-      createDate: "2019-09-18T08:30:32.032Z",
-      relatedEndusers: [],
-      emailMd5: "53d22e4afda071779fafc63ba1433906",
-      __v: 0,
-      relevance: 0,
-    },
-  ];
-
-  nockFn(`https://${API_PREFIX}.planhat.com`)
-    .matchHeader("authorization", `Bearer ${PERSONAL_ACCESS_TOKEN}`)
-    .get(`/endusers?email=${dataCreatedContact.email}`)
-    .reply(200, dataSearch, { "Content-Type": "application/json" });
-
-  nockFn(`https://${API_PREFIX}.planhat.com`)
-    .matchHeader("authorization", `Bearer ${PERSONAL_ACCESS_TOKEN}`)
-    .put("/endusers/5d81eb28aeeafc7a74d8f999")
-    .reply(200, dataCreatedContact, { "Content-Type": "application/json" });
-
   nockFn(`https://${API_PREFIX}.planhat.com`)
     .matchHeader("authorization", `Bearer ${PERSONAL_ACCESS_TOKEN}`)
     .get("/users")
     .reply(200, planhatUsersResponse, { "Content-Type": "application/json" });
+
+  nockFn(`https://${API_PREFIX}.planhat.com`)
+    .matchHeader("authorization", `Bearer ${PERSONAL_ACCESS_TOKEN}`)
+    .get(`/leancompanies?externalId=vhoih28[hbnjnmwjnjbfoho`)
+    .reply(200, [], { "Content-Type": "application/json" });
+
+  nockFn(`https://${API_PREFIX}.planhat.com`)
+    .matchHeader("authorization", `Bearer ${PERSONAL_ACCESS_TOKEN}`)
+    .post("/companies")
+    .reply(500, "Failed to create company", {
+      "Content-Type": "text/html; charset=utf-8",
+    });
 };
 
 // eslint-disable-next-line import/no-default-export

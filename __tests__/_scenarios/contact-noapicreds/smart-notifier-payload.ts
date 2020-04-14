@@ -1,16 +1,12 @@
 import _ from "lodash";
 import payload from "../../_data/user-update-message.json";
-import { API_PREFIX, PERSONAL_ACCESS_TOKEN } from "../../_helpers/constants";
+import { API_PREFIX } from "../../_helpers/constants";
 
 const basePayload = _.cloneDeep(payload);
 
 const configurePayload = (): unknown => {
   // Configure private_settings
-  _.set(
-    basePayload,
-    "connector.private_settings.personal_acccess_token",
-    PERSONAL_ACCESS_TOKEN,
-  );
+  _.unset(basePayload, "connector.private_settings.personal_acccess_token");
   _.set(basePayload, "connector.private_settings.api_prefix", API_PREFIX);
   _.set(
     basePayload,
@@ -33,15 +29,10 @@ const configurePayload = (): unknown => {
     external_id: "vhoih28[hbnjnmwjnjbfoho",
     id: "0df9fa5d-ce4c-4065-a8ba-3e25470f17e7",
     name: "Test 1234 Inc.",
-    planhat: {
-      id: "1234",
-    },
   };
   _.set(basePayload, "messages[0].account", account);
   // Set the user segments
   _.set(basePayload, "messages[0].segments", msgSegments);
-  // Set the planhat identifier
-  _.set(basePayload, "messages[0].user.planhat.id", "5d81eb28aeeafc7a74d8f999");
 
   return basePayload;
 };

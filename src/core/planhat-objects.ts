@@ -69,3 +69,23 @@ export interface PlanhatUser {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [propName: string]: any; // Only in responses from the API
 }
+
+export interface PlanhatLicense {
+  _id?: string;
+  externalId?: string;
+  product?: string;
+  _currency: string;
+  fromDate: string;
+  toDate?: string;
+  fixedPeriod: boolean;
+  mrr?: number;
+  value?: number;
+  renewalStatus?: "ongoing" | "renewed" | "lost";
+  autoRenews?: boolean;
+  renewalPeriod?: number;
+  noticePeriod?: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  custom?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [propName: string]: any; // Only in responses from the API
+}

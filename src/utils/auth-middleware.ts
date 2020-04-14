@@ -4,8 +4,11 @@ import Hull from "hull";
 import * as basicAuth from "express-basic-auth";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+const authMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): RequestHandler => {
   const orgId = _.get(req, "query.org", undefined);
   const authHandler: RequestHandler<any> = basicAuth.default({
     authorizeAsync: true,
@@ -46,7 +49,7 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
       }
     },
   });
-  authHandler(req, res, next);
+  return authHandler(req, res, next);
 };
 /* eslint-enable @typescript-eslint/no-explicit-any */
 

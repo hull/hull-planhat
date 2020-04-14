@@ -415,16 +415,14 @@ class SyncAgent {
 
           if (
             lookupResult.success &&
-            (_.first(lookupResult.data) as IPlanhatCompany)._id !== undefined
+            (lookupResult.data as IPlanhatCompany)._id !== undefined
           ) {
             // eslint-disable-next-line no-param-reassign
-            (envelope.serviceObject as IPlanhatCompany).id = (_.first(
-              lookupResult.data,
-            ) as IPlanhatCompany)._id;
+            (envelope.serviceObject as IPlanhatCompany).id = (lookupResult.data as IPlanhatCompany)._id;
             // Update the existing company
             const hasChanges = this._patchUtil.hasCompanyChangesToUpdate(
               envelope.serviceObject as IPlanhatCompany,
-              _.first(lookupResult.data) as IPlanhatCompany,
+              lookupResult.data as IPlanhatCompany,
             );
             if (hasChanges) {
               const updateResult = await this._serviceClient.updateCompany(
