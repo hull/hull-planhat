@@ -1,226 +1,268 @@
 {
-    "name": "Planhat [BETA]",
-    "tags": [
-        "outgoing",
-        "oneColumn",
-        "batch",
-        "smart-notifier"
-    ],
-    "description": "Synchronize Hull accounts with Planhat and forward user events.",
-    "readme": "readme.md",
-    "tabs": [],
-    "version": "0.1.1",
-    "source": "planhat",
-    "logo": "logo.png",
-    "ui": false,
-    "settings": [],
-    "private_settings": [
-        {
-            "name": "personal_acccess_token",
-            "title": "Personal Access Token",
-            "type": "string"
-        },
-        {
-            "name": "api_prefix",
-            "title": "API Prefix",
+  "name": "Planhat [BETA]",
+  "tags": [
+    "outgoing",
+    "oneColumn",
+    "batch",
+    "batch-accounts",
+    "smart-notifier"
+  ],
+  "description": "Synchronize Hull accounts with Planhat and forward user events.",
+  "readme": "readme.md",
+  "tabs": [],
+  "version": "0.1.6",
+  "source": "planhat",
+  "logo": "logo.png",
+  "ui": false,
+  "settings": [],
+  "private_settings": [
+    {
+      "name": "personal_acccess_token",
+      "title": "Personal Access Token",
+      "type": "string"
+    },
+    {
+      "name": "api_prefix",
+      "title": "API Prefix",
+      "type": "string",
+      "default": "api",
+      "enum": ["api", "api-eu", "api-us2"],
+      "required": true
+    },
+    {
+      "name": "tenant_id",
+      "title": "Tenant Token",
+      "type": "string"
+    },
+    {
+      "name": "contact_synchronized_segments",
+      "title": "Contact Filter",
+      "description": "Send users and events as contacts and events when they belong to one of these segments to Planhat. Only users in the specified segments are sent.",
+      "type": "array",
+      "format": "segment",
+      "default": []
+    },
+    {
+      "name": "contact_events",
+      "title": "Tracking Filter",
+      "description": "Send these event as end-user activity to Planhat. If no events are whitelisted, no event data will be sent but user attributes are still being synchronized to Planhat Contacts.",
+      "format": "event",
+      "type": "array",
+      "default": []
+    },
+    {
+      "name": "contact_attributes_outbound",
+      "title": "User attributes mapping",
+      "type": "array",
+      "format": "table",
+      "default": [
+        { "hull_field_name": "name", "service_field_name": "Full name" },
+        { "hull_field_name": "email", "service_field_name": "Email" }
+      ],
+      "items": {
+        "type": "object",
+        "properties": {
+          "hull_field_name": {
             "type": "string",
-            "default": "api",
-            "enum": [
-                "api",
-                "api-eu",
-                "api-us2"
-            ],
-            "required": true
-        },
-        {
-            "name": "tenant_id",
-            "title": "Tenant ID",
-            "type": "string"
-        },
-        {
-            "name": "contact_synchronized_segments",
-            "title": "Contact Filter",
-            "description": "Send users and events as contacts and events when they belong to one of these segments to Planhat. Only users in the specified segments are sent.",
-            "type": "array",
-            "format": "segment",
-            "default": []
+            "format": "trait",
+            "title": "Hull Attribute"
           },
-        {
-            "name": "contact_events",
-            "title": "Tracking Filter",
-            "description": "Send these event as end-user activity to Planhat. If no events are whitelisted, no event data will be sent but user attributes are still being synchronized to Planhat Contacts.",
-            "format": "event",
-            "type": "array",
-            "default": []
-        },
-        {
-            "name" : "contact_attributes_outbound",
-            "title" : "User attributes mapping",
-            "type" : "array",
-            "format" : "table",
-            "default" : [
-              { "hull_field_name" : "name", "service_field_name" : "Full name" },
-              { "hull_field_name" : "email", "service_field_name" : "Email" }
-            ],
-            "items" : {
-              "type" : "object",
-              "properties" : {
-                "hull_field_name" : {
-                  "type" : "string",
-                  "format" : "trait",
-                  "title" : "Hull Attribute"
-                },
-                "service_field_name" : {
-                  "type" : "string",
-                  "title" : "Planhat Property",
-                  "format" : "select",
-                  "options" : {
-                    "loadOptions": "/schema/contacts"
-                  }
-                }
-              },
-              "required" : [
-                "hull_field_name",
-                "service_field_name"
-              ]
+          "service_field_name": {
+            "type": "string",
+            "title": "Planhat Property",
+            "format": "select",
+            "options": {
+              "loadOptions": "/schema/contacts"
             }
-        },
-        {
-          "name" : "contact_custom_attributes_outbound",
-          "title" : "User custom attributes mapping",
-          "type" : "array",
-          "format" : "table",
-          "default": [],
-          "items": {
-            "type" : "object",
-            "properties" : {
-              "hull_field_name" : {
-                "type" : "string",
-                "format" : "trait",
-                "title" : "Hull Attribute"
-              }, 
-              "service_field_name": {
-                "type": "string",
-                "title": "Custom Attribute Name"
-              }
-            },
-            "required" : [
-              "hull_field_name",
-              "service_field_name"
-            ]
           }
         },
-        {
-            "name": "heading_account_configuration",
+        "required": ["hull_field_name", "service_field_name"]
+      }
+    },
+    {
+      "name": "contact_custom_attributes_outbound",
+      "title": "User custom attributes mapping",
+      "type": "array",
+      "format": "table",
+      "default": [],
+      "items": {
+        "type": "object",
+        "properties": {
+          "hull_field_name": {
             "type": "string",
-            "format": "title",
-            "title": "Account Configuration"
-        },
-        {
-            "name": "account_synchronized_segments",
-            "title": "Company Filter",
-            "description": "Send accounts when they belong to one of these segments to Planhat. Only accounts in the specified segments are sent.",
-            "type": "array",
-            "format": "accountSegment",
-            "default": []
+            "format": "trait",
+            "title": "Hull Attribute"
           },
-        {
-            "name": "account_require_externalid",
-            "title": "Require `external_id` to synchronize?",
-            "type": "boolean",
-            "default": true
+          "service_field_name": {
+            "type": "string",
+            "title": "Custom Attribute Name"
+          }
         },
-        {
-            "name" : "account_attributes_outbound",
-            "title" : "Account attributes mapping",
-            "type" : "array",
-            "format" : "table",
-            "default" : [
-              { "hull_field_name" : "name", "service_field_name" : "Name (*)" }
-            ],
-            "items" : {
-              "type" : "object",
-              "properties" : {
-                "hull_field_name" : {
-                  "type" : "string",
-                  "format" : "accountTrait",
-                  "title" : "Hull Attribute"
-                },
-                "service_field_name" : {
-                  "type" : "string",
-                  "title" : "Planhat Property",
-                  "format" : "select",
-                  "options" : {
-                    "loadOptions": "/schema/companies"
-                  }
-                }
-              },
-              "required" : [
-                "hull_field_name",
-                "service_field_name"
-              ]
-            }
+        "required": ["hull_field_name", "service_field_name"]
+      }
+    },
+    {
+      "name": "heading_account_configuration",
+      "type": "string",
+      "format": "title",
+      "title": "Account Configuration"
+    },
+    {
+      "name": "account_synchronized_segments",
+      "title": "Company Filter",
+      "description": "Send accounts when they belong to one of these segments to Planhat. Only accounts in the specified segments are sent.",
+      "type": "array",
+      "format": "accountSegment",
+      "default": []
+    },
+    {
+      "name": "account_require_externalid",
+      "title": "Require `external_id` to synchronize?",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "name": "account_attributes_outbound",
+      "title": "Account attributes mapping",
+      "type": "array",
+      "format": "table",
+      "default": [
+        { "hull_field_name": "name", "service_field_name": "Name (*)" }
+      ],
+      "items": {
+        "type": "object",
+        "properties": {
+          "hull_field_name": {
+            "type": "string",
+            "format": "accountTrait",
+            "title": "Hull Attribute"
           },
-          {
-            "name" : "account_custom_attributes_outbound",
-            "title" : "Account custom attributes mapping",
-            "type" : "array",
-            "format" : "table",
-            "default" : [ ],
-            "items" : {
-              "type" : "object",
-              "properties" : {
-                "hull_field_name" : {
-                  "type" : "string",
-                  "format" : "accountTrait",
-                  "title" : "Hull Attribute"
-                },
-                "service_field_name" : {
-                  "type" : "string",
-                  "title" : "Custom Attribute Name"
-                }
-              },
-              "required" : [
-                "hull_field_name",
-                "service_field_name"
-              ]
+          "service_field_name": {
+            "type": "string",
+            "title": "Planhat Property",
+            "format": "select",
+            "options": {
+              "loadOptions": "/schema/companies"
             }
           }
-    ],
-    "schedules": [],
-    "subscriptions": [
-        {
-            "url": "/smart-notifier"
-        }
-    ],
-    "settings_sections": [
-        {
-            "title": "Planhat Connectivity",
-            "description": "Configure basic parameters to connect to your Planhat service",
-            "properties": [
-                "private_settings.personal_acccess_token",
-                "private_settings.api_prefix",
-                "private_settings.tenant_id"
-            ]
         },
-        {
-            "title": "User Outgoing Setup",
-            "description": "How we send Users and Events as Planhat Contacts and Events",
-            "properties": [
-              "private_settings.contact_synchronized_segments",
-              "private_settings.contact_attributes_outbound",
-              "private_settings.contact_custom_attributes_outbound",
-              "private_settings.contact_events"
-            ]
+        "required": ["hull_field_name", "service_field_name"]
+      }
+    },
+    {
+      "name": "account_custom_attributes_outbound",
+      "title": "Account custom attributes mapping",
+      "type": "array",
+      "format": "table",
+      "default": [],
+      "items": {
+        "type": "object",
+        "properties": {
+          "hull_field_name": {
+            "type": "string",
+            "format": "accountTrait",
+            "title": "Hull Attribute"
+          },
+          "service_field_name": {
+            "type": "string",
+            "title": "Custom Attribute Name"
+          }
         },
-        {
-            "title": "Account Outgoing Setup",
-            "description": "How we send Accounts as Planhat Companies",
-            "properties": [
-              "private_settings.account_synchronized_segments",
-              "private_settings.account_attributes_outbound",
-              "private_settings.account_custom_attributes_outbound"
-            ]
-        }
-    ]
+        "required": ["hull_field_name", "service_field_name"]
+      }
+    },
+    {
+      "name": "account_licenses_attribute",
+      "title": "Licenses account attribute",
+      "description": "The selected attribute needs to be a JSON object containing an array.",
+      "type": "string",
+      "format": "accountTrait"
+    },
+    {
+      "name": "account_licenses_attributes_outbound",
+      "title": "Licenses attributes mapping",
+      "description": "See Planhat API reference for required mappings: [https://docs.planhat.com](https://docs.planhat.com/?version=latest#0a0754bd-9def-4e21-afc4-0d0f2e3b58dd)",
+      "type": "array",
+      "format": "table",
+      "default": [],
+      "items": {
+        "type": "object",
+        "properties": {
+          "hull_field_name": {
+            "type": "string",
+            "title": "Hull Attribute"
+          },
+          "service_field_name": {
+            "type": "string",
+            "title": "Planhat Property",
+            "format": "select",
+            "options": {
+              "loadOptions": "/schema/licenses"
+            }
+          }
+        },
+        "required": ["hull_field_name", "service_field_name"]
+      }
+    },
+    {
+      "name": "account_licenses_custom_attributes_outbound",
+      "title": "Licenses custom attributes mapping",
+      "type": "array",
+      "format": "table",
+      "default": [],
+      "items": {
+        "type": "object",
+        "properties": {
+          "hull_field_name": {
+            "type": "string",
+            "title": "Hull Attribute"
+          },
+          "service_field_name": {
+            "type": "string",
+            "title": "Custom Attribute Name"
+          }
+        },
+        "required": ["hull_field_name", "service_field_name"]
+      }
+    }
+  ],
+  "schedules": [],
+  "subscriptions": [
+    {
+      "url": "/smart-notifier"
+    }
+  ],
+  "settings_sections": [
+    {
+      "title": "Planhat Connectivity",
+      "description": "Configure basic parameters to connect to your Planhat service",
+      "properties": [
+        "private_settings.personal_acccess_token",
+        "private_settings.api_prefix",
+        "private_settings.tenant_id"
+      ]
+    },
+    {
+      "title": "User Outgoing Setup",
+      "description": "How we send Users and Events as Planhat Contacts and Events",
+      "properties": [
+        "private_settings.contact_synchronized_segments",
+        "private_settings.contact_attributes_outbound",
+        "private_settings.contact_custom_attributes_outbound",
+        "private_settings.contact_events"
+      ]
+    },
+    {
+      "title": "Account Outgoing Setup",
+      "description": "How we send Accounts as Planhat Companies",
+      "properties": [
+        "private_settings.account_synchronized_segments",
+        "private_settings.account_attributes_outbound",
+        "private_settings.account_custom_attributes_outbound",
+        "private_settings.account_licenses_attribute",
+        "private_settings.account_licenses_attributes_outbound",
+        "private_settings.account_licenses_custom_attributes_outbound"
+      ]
+    }
+  ]
 }
