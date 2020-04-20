@@ -18,6 +18,20 @@ const PLANHAT_PROPERTIES = {
     phase: "Lifecycle phase",
     tags: "Tags",
   },
+  LICENSES: {
+    externalId: "External ID (*)",
+    product: "Product",
+    _currency: "Currency (*)",
+    fromDate: "From Date (*)",
+    toDate: "To Date",
+    fixedPeriod: "Fixed Period",
+    mrr: "MRR (*)",
+    value: "Total Value (*)",
+    renewalStatus: "Renewal Status",
+    autoRenews: "Auto Renewal",
+    renewalPeriod: "Renewal Period (in months)",
+    noticePeriod: "Notice Period (in days)",
+  },
 };
 
 // eslint-disable-next-line import/no-default-export

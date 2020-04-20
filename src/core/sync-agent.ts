@@ -2,7 +2,7 @@ import _ from "lodash";
 import IHullClient from "../types/hull-client";
 import FilterUtil from "../utils/filter-util";
 import MappingUtil from "../utils/mapping-util";
-import IPrivateSettings from "../types/private-settings";
+import PrivateSettings from "../types/private-settings";
 import IHullUserUpdateMessage from "../types/user-update-message";
 import IHullAccountUpdateMessage from "../types/account-update-message";
 import {
@@ -10,13 +10,15 @@ import {
   IOperationEnvelope,
   IPlanhatEvent,
   IPlanhatCompany,
+  PlanhatLicense,
+  BulkUpsertResponse,
 } from "./planhat-objects";
 import PlanhatClient from "./planhat-client";
 import IPlanhatClientConfig from "../types/planhat-client-config";
 import asyncForEach from "../utils/async-foreach";
 import IHullUserEvent from "../types/user-event";
 import IHullAccount, { IHullAccountClaims } from "../types/account";
-import IApiResultObject from "../types/api-result";
+import ApiResultObject from "../types/api-result";
 import { HullObjectType } from "../types/common-types";
 import { IHullUserClaims } from "../types/user";
 import { IPlanhatAccountDictionaryItem } from "../types/planhat-account-dict";
@@ -33,7 +35,7 @@ class SyncAgent {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _connector: any;
 
-  private _privateSettings: IPrivateSettings;
+  private _privateSettings: PrivateSettings;
 
   private _filterUtil: FilterUtil;
 
@@ -57,7 +59,7 @@ class SyncAgent {
     this._privateSettings = _.get(
       connector,
       "private_settings",
-    ) as IPrivateSettings;
+    ) as PrivateSettings;
     this._privateSettings.account_require_externalid = true; // NOTE: Hardcoded for now to prevent shortcomings in PH API
     this._canCommunicateWithApi = this.canCommunicateWithApi();
     // Initialize the service client
@@ -261,6 +263,7 @@ class SyncAgent {
       },
     );
 
+    // console.log(">>> ENVELOPES:", envelopesValidated, envelopesInvalidated);
     // Process all events and track them in Planhat
     let eventMessages: IHullUserUpdateMessage[] = _.map(
       envelopesValidated,
@@ -390,7 +393,7 @@ class SyncAgent {
       await asyncForEach(
         envelopesValidated,
         async (envelope: IOperationEnvelope<IPlanhatCompany>) => {
-          let lookupResult: IApiResultObject<IPlanhatCompany> = {
+          let lookupResult: ApiResultObject<IPlanhatCompany> = {
             success: false,
             data: null,
             endpoint: "none",
@@ -443,18 +446,46 @@ class SyncAgent {
                     "All mapped attributes are already in sync between Hull and Planhat.",
                 });
             }
+            // Process licenses
+            const phLicenses = this._mappingUtil.mapHullAccountToLicenses(
+              (lookupResult.data as IPlanhatCompany)._id as string,
+              envelope.msg.account as IHullAccount,
+            );
+            if (phLicenses.length > 0) {
+              const licensesBulkResult = await this._serviceClient.bulkUpsertLicenses(
+                phLicenses,
+              );
+
+              this.handleOutgoingBulkResultLicenses(
+                envelope.msg.account as IHullAccount,
+                licensesBulkResult,
+              );
+            }
           } else {
             // Create a new company
             const insertResult = await this._serviceClient.createCompany(
               envelope.serviceObject as IPlanhatCompany,
             );
-            const outgoingRes = await this.handleOutgoingResult(
-              envelope,
-              insertResult,
-              "account",
-            );
-            // eslint-disable-next-line no-console
-            console.log(outgoingRes);
+            await this.handleOutgoingResult(envelope, insertResult, "account");
+
+            // Process licenses
+            if (insertResult.success === true) {
+              const companyId = insertResult.data._id;
+              const phLicenses = this._mappingUtil.mapHullAccountToLicenses(
+                companyId,
+                envelope.msg.account as IHullAccount,
+              );
+              if (phLicenses.length > 0) {
+                const licensesBulkResult = await this._serviceClient.bulkUpsertLicenses(
+                  phLicenses,
+                );
+
+                this.handleOutgoingBulkResultLicenses(
+                  envelope.msg.account as IHullAccount,
+                  licensesBulkResult,
+                );
+              }
+            }
           }
         },
       );
@@ -483,7 +514,7 @@ class SyncAgent {
 
   private handleOutgoingResult<T>(
     envelope: IOperationEnvelope<T>,
-    operationResult: IApiResultObject<T>,
+    operationResult: ApiResultObject<T>,
     hullType: HullObjectType,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<any> {
@@ -527,6 +558,28 @@ class SyncAgent {
     } else {
       scopedClient.logger.error(`outgoing.${hullType}.error`, operationResult);
       return Promise.resolve(false);
+    }
+
+    return Promise.resolve(false);
+  }
+
+  private handleOutgoingBulkResultLicenses(
+    account: IHullAccount,
+    result: ApiResultObject<PlanhatLicense[]>,
+  ): Promise<unknown> {
+    const scopedClient = this._hullClient.asAccount(account);
+
+    if (result.success) {
+      if (
+        (result.data as BulkUpsertResponse).createdErrors.length > 0 ||
+        (result.data as BulkUpsertResponse).updatedErrors.length > 0
+      ) {
+        scopedClient.logger.error(`outgoing.account.error`, result);
+      } else {
+        scopedClient.logger.info(`outgoing.account.success`, result);
+      }
+    } else {
+      scopedClient.logger.error(`outgoing.account.error`, result);
     }
 
     return Promise.resolve(false);

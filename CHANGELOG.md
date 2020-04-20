@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 0.1.6 [BETA]
+
+- [maintenance] Add unit and integration tests to automate manual tests
+- [maintenance] Prepare code base for status endpoint reporting and metrics
+- [maintenance] Updated documentation to reflect new features and maintenance
+- [feature] Add synchronization of licenses for companies
+- [feature] Add schema for license properties
+
 ## Version 0.1.5 [BETA]
 
 - [bugfix] Add batch handler with proper initialization for accounts

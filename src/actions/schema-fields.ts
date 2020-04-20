@@ -23,6 +23,12 @@ const fieldsSchemaAction = (req: any, res: any): any => {
       });
       payload.ok = true;
       break;
+    case "licenses":
+      _.forIn(PLANHAT_PROPERTIES.LICENSES, (v: string, k: string) => {
+        payload.options.push({ value: k, label: v });
+      });
+      payload.ok = true;
+      break;
     default:
       payload.error = `Unrecognized type: "${type}"`;
       break;

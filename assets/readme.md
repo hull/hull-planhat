@@ -37,9 +37,15 @@ You can synchronize account attributes from Hull with Planhat companies by speci
 
 Only accounts with an `external_id` in Hull can be synchronized to Planhat to ensure proper deduplication.
 
-If you want the connector to assign `Owner` and `Co-Owner` in Planhat, you need to specify an attribute which has the value of the Planhat ID of the User who should be the owner or co-owner. If you send an invalid value, the payload will be rejected by the connector and no API call to Planhat will be executed; the connector will log an `outgoing.account.skip` message in this case with a reason of `Invalid Owner ID` or `Invalid Co-Owner ID`.
+If you want the connector to assign `Owner` and `Co-Owner` in Planhat, you need to specify an attribute which has the value of the Planhat ID of the User who should be the owner or co-owner. If you send an invalid value, the payload will be rejected by the connector and no API call to Planhat will be executed; the connector will log an `outgoing.account.skip` message in this case with a reason of `Invalid Owner ID` or `Invalid Co-Owner ID`. _This feature is available since version 0.1.5_
 
 _Note_: The account must be in one of the whitelisted segments. The connector won't synchronize a linked account based on the fact that the user matches a whitlisted segment in the `Contact Filter`.
+
+#### Synchronization of Licenses
+
+Licenses are dependent objects from companies in Planhat. Hull doesn't have a dedicated object for licenses, but the Planhat connector enables you to synchronize an account attribute which needs to be of type `JSON`. This JSON attribute needs to be an array of objects and can be configured under `Licenses account attribute`.
+The next step to synchronize licenses is to specify the mappings for each object in the JSON array under `Licenses attributes mapping`. There is no input help available for the Hull Attribute, so be careful when mapping the data since the entries are case-sensitive. To avoid issues, you should stay clear of using spaces in the attributes stored in Hull.
+You also have the option to map custom attributes for licenses, please refer to the [Planhat docs](https://docs.planhat.com/?version=latest#0a0754bd-9def-4e21-afc4-0d0f2e3b58dd) for further details and best practices. _This feature is available since version 0.1.6_
 
 ### Internal API
 

@@ -65,7 +65,7 @@ export interface PlanhatUser {
   nickName: string;
   firstName: string;
   lastName: string;
-  roles: string[];
+  roles?: string[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [propName: string]: any; // Only in responses from the API
 }
@@ -74,18 +74,38 @@ export interface PlanhatLicense {
   _id?: string;
   externalId?: string;
   product?: string;
-  _currency: string;
+  _currency?: string;
   fromDate: string;
   toDate?: string;
-  fixedPeriod: boolean;
+  fixedPeriod?: boolean;
   mrr?: number;
   value?: number;
   renewalStatus?: "ongoing" | "renewed" | "lost";
   autoRenews?: boolean;
   renewalPeriod?: number;
   noticePeriod?: number;
+  companyId?: string; // Only required for bulk upserts
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   custom?: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [propName: string]: any; // Only in responses from the API
+}
+
+export interface BulkUpsertResponse {
+  created: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  createdErrors: any[];
+  insertsKeys: BulkUpsertKey[];
+  updated: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  updatedErrors: any[];
+  updatesKeys: BulkUpsertKey[];
+  nonupdates: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  modified: any[];
+  upsertedIds: string[];
+}
+
+export interface BulkUpsertKey {
+  _id: string;
 }

@@ -1,5 +1,5 @@
 import _ from "lodash";
-import IPrivateSettings from "../types/private-settings";
+import PrivateSettings from "../types/private-settings";
 import IHullUserUpdateMessage from "../types/user-update-message";
 import IHullUserEvent from "../types/user-event";
 import IHullAccountUpdateMessage from "../types/account-update-message";
@@ -21,7 +21,7 @@ class FilterUtil {
 
   private planhatUsers: PlanhatUser[];
 
-  constructor(privateSettings: IPrivateSettings, planhatUsers: PlanhatUser[]) {
+  constructor(privateSettings: PrivateSettings, planhatUsers: PlanhatUser[]) {
     this.contactSegments = privateSettings.contact_synchronized_segments;
     this.contactEvents = privateSettings.contact_events;
     this.accountSegments = privateSettings.account_synchronized_segments;

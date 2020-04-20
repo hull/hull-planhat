@@ -10,7 +10,7 @@
   "description": "Synchronize Hull accounts with Planhat and forward user events.",
   "readme": "readme.md",
   "tabs": [],
-  "version": "0.1.5",
+  "version": "0.1.6",
   "source": "planhat",
   "logo": "logo.png",
   "ui": false,
@@ -170,6 +170,60 @@
         },
         "required": ["hull_field_name", "service_field_name"]
       }
+    },
+    {
+      "name": "account_licenses_attribute",
+      "title": "Licenses account attribute",
+      "description": "The selected attribute needs to be a JSON object containing an array.",
+      "type": "string",
+      "format": "accountTrait"
+    },
+    {
+      "name": "account_licenses_attributes_outbound",
+      "title": "Licenses attributes mapping",
+      "description": "See Planhat API reference for required mappings: [https://docs.planhat.com](https://docs.planhat.com/?version=latest#0a0754bd-9def-4e21-afc4-0d0f2e3b58dd)",
+      "type": "array",
+      "format": "table",
+      "default": [],
+      "items": {
+        "type": "object",
+        "properties": {
+          "hull_field_name": {
+            "type": "string",
+            "title": "Hull Attribute"
+          },
+          "service_field_name": {
+            "type": "string",
+            "title": "Planhat Property",
+            "format": "select",
+            "options": {
+              "loadOptions": "/schema/licenses"
+            }
+          }
+        },
+        "required": ["hull_field_name", "service_field_name"]
+      }
+    },
+    {
+      "name": "account_licenses_custom_attributes_outbound",
+      "title": "Licenses custom attributes mapping",
+      "type": "array",
+      "format": "table",
+      "default": [],
+      "items": {
+        "type": "object",
+        "properties": {
+          "hull_field_name": {
+            "type": "string",
+            "title": "Hull Attribute"
+          },
+          "service_field_name": {
+            "type": "string",
+            "title": "Custom Attribute Name"
+          }
+        },
+        "required": ["hull_field_name", "service_field_name"]
+      }
     }
   ],
   "schedules": [],
@@ -204,7 +258,10 @@
       "properties": [
         "private_settings.account_synchronized_segments",
         "private_settings.account_attributes_outbound",
-        "private_settings.account_custom_attributes_outbound"
+        "private_settings.account_custom_attributes_outbound",
+        "private_settings.account_licenses_attribute",
+        "private_settings.account_licenses_attributes_outbound",
+        "private_settings.account_licenses_custom_attributes_outbound"
       ]
     }
   ]

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import _ from "lodash";
 import { ClientOpts } from "redis";
-import IPrivateSettings from "../types/private-settings";
+import PrivateSettings from "../types/private-settings";
 import PlanhatClient from "../core/planhat-client";
 import IPlanhatClientConfig from "../types/planhat-client-config";
 import { ConnectorRedisClient } from "../utils/redis-client";
@@ -17,7 +17,7 @@ const instantiateServiceClient = (req: Request): PlanhatClient => {
   const privateSettings = _.get(
     connector,
     "private_settings",
-  ) as IPrivateSettings;
+  ) as PrivateSettings;
 
   const svcClientConfig: IPlanhatClientConfig = {
     accessToken: privateSettings.personal_acccess_token || "",

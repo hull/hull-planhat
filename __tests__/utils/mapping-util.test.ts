@@ -8,8 +8,10 @@ import {
   IPlanhatContact,
   IPlanhatCompany,
   IPlanhatEvent,
+  PlanhatLicense,
 } from "../../src/core/planhat-objects";
 import IHullUserEvent from "../../src/types/user-event";
+import IHullAccount from "../../src/types/account";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 describe("MappingUtil", () => {
@@ -72,6 +74,48 @@ describe("MappingUtil", () => {
     expect(actual).toEqual(expected);
   });
 
+  test("should map a Hull user with an account to a Planhat contact with custom attributes", () => {
+    const privateSettings: any = _.cloneDeep(
+      userUpdateMessage.connector.private_settings,
+    );
+    // Configure the private_settings
+    privateSettings.contact_attributes_outbound.push({
+      hull_field_name: "external_id",
+      service_field_name: "externalId",
+    });
+    privateSettings.contact_custom_attributes_outbound = [
+      {
+        hull_field_name: "unified.custom1",
+        service_field_name: "Custom1",
+      },
+    ];
+    const util = new MappingUtil(privateSettings);
+    const msg: IHullUserUpdateMessage = _.cloneDeep(
+      userUpdateMessage.messages[0],
+    ) as any;
+    msg.account = {
+      id: "23t18ogftnwheflbhmwbiornhl",
+      external_id: "test-acct-1234",
+      name: "Test Account 1234",
+      domain: "hull.io",
+      planhat: {
+        id: "21otgahlbznst",
+      },
+    };
+    _.set(msg, "user.unified.custom1", "somevalue");
+    const actual = util.mapHullUserToPlanhatContact(msg);
+    const expected: IPlanhatContact = {
+      companyId: "21otgahlbznst",
+      email: msg.user.email as string,
+      name: msg.user.name as string,
+      externalId: msg.user.external_id as string,
+      custom: {
+        Custom1: "somevalue",
+      },
+    };
+    expect(actual).toEqual(expected);
+  });
+
   test("should not fail to map a Hull user if no mappings are defined", () => {
     const privateSettings: any = _.cloneDeep(
       userUpdateMessage.connector.private_settings,
@@ -106,6 +150,38 @@ describe("MappingUtil", () => {
     const expected: IPlanhatCompany = {
       name: "Test 1234",
       externalId: "test-group-1nhb9l",
+    };
+
+    expect(actual).toEqual(expected);
+  });
+
+  test("should map a Hull account to a Planhat company with custom attributes", () => {
+    const privateSettings: any = _.cloneDeep(
+      accountUpdateMessage.connector.private_settings,
+    );
+    // Configure the private_settings
+    privateSettings.account_attributes_outbound.push({
+      hull_field_name: "external_id",
+      service_field_name: "externalId",
+    });
+    privateSettings.account_custom_attributes_outbound = [
+      {
+        hull_field_name: "unified.custom1",
+        service_field_name: "Custom1",
+      },
+    ];
+    const util = new MappingUtil(privateSettings);
+    const msg: IHullAccountUpdateMessage = _.cloneDeep(
+      accountUpdateMessage.messages[0],
+    ) as any;
+    _.set(msg, "account.unified.custom1", "somevalue");
+    const actual = util.mapHullAccountToPlanhatCompany(msg);
+    const expected: IPlanhatCompany = {
+      name: "Test 1234",
+      externalId: "test-group-1nhb9l",
+      custom: {
+        Custom1: "somevalue",
+      },
     };
 
     expect(actual).toEqual(expected);
@@ -357,6 +433,178 @@ describe("MappingUtil", () => {
     const actual = util.mapPlanhatCompanyToAccountAttributes(
       dataCreatedCompany,
     );
+    expect(actual).toEqual(expected);
+  });
+
+  it("should map a Hull account to an empty array of planhat licences if no configuration is specified", () => {
+    const privateSettings: any = _.cloneDeep(
+      accountUpdateMessage.connector.private_settings,
+    );
+    // Configure the private_settings
+    privateSettings.account_attributes_outbound = [];
+    const util = new MappingUtil(privateSettings);
+    const msg: IHullAccountUpdateMessage = _.cloneDeep(
+      accountUpdateMessage.messages[0],
+    ) as any;
+
+    const actual = util.mapHullAccountToLicenses(
+      "",
+      msg.account as IHullAccount,
+    );
+    expect(actual).toHaveLength(0);
+  });
+
+  it("should map a Hull account without licencse data to an empty array of planhat licences", () => {
+    const privateSettings: any = _.cloneDeep(
+      accountUpdateMessage.connector.private_settings,
+    );
+    // Configure the private_settings
+    privateSettings.account_attributes_outbound = [];
+    privateSettings.account_licenses_attribute = "unified.ph_licenses";
+    privateSettings.account_licenses_attributes_outbound = [
+      {
+        hull_field_name: "id",
+        service_field_name: "externalId",
+      },
+      {
+        hull_field_name: "product",
+        service_field_name: "product",
+      },
+      {
+        hull_field_name: "currency",
+        service_field_name: "_currency",
+      },
+      {
+        hull_field_name: "start_date",
+        service_field_name: "fromDate",
+      },
+      {
+        hull_field_name: "mrr",
+        service_field_name: "mrr",
+      },
+    ];
+    const util = new MappingUtil(privateSettings);
+    const msg: IHullAccountUpdateMessage = _.cloneDeep(
+      accountUpdateMessage.messages[0],
+    ) as any;
+
+    const actual = util.mapHullAccountToLicenses(
+      "",
+      msg.account as IHullAccount,
+    );
+    expect(actual).toHaveLength(0);
+  });
+
+  it("should map a Hull account with licencse data to an empty array of planhat licences if the attribute is not an array", () => {
+    const privateSettings: any = _.cloneDeep(
+      accountUpdateMessage.connector.private_settings,
+    );
+    // Configure the private_settings
+    privateSettings.account_attributes_outbound = [];
+    privateSettings.account_licenses_attribute = "unified.ph_licenses";
+    privateSettings.account_licenses_attributes_outbound = [
+      {
+        hull_field_name: "id",
+        service_field_name: "externalId",
+      },
+      {
+        hull_field_name: "product",
+        service_field_name: "product",
+      },
+      {
+        hull_field_name: "currency",
+        service_field_name: "_currency",
+      },
+      {
+        hull_field_name: "start_date",
+        service_field_name: "fromDate",
+      },
+      {
+        hull_field_name: "mrr",
+        service_field_name: "mrr",
+      },
+    ];
+    const util = new MappingUtil(privateSettings);
+    const msg: IHullAccountUpdateMessage = _.cloneDeep(
+      accountUpdateMessage.messages[0],
+    ) as any;
+    // Set test data for licenses
+    const hullLicenses = {
+      id: "12345",
+      product: "License Fee",
+      currency: "USD",
+      start_date: "2019-12-11T11:46:08+02:00",
+      mrr: 499,
+    };
+    _.set(msg, "account.unified.ph_licenses", hullLicenses);
+    const companyId = "5df0afda6c7e8e21d74136db";
+    const actual = util.mapHullAccountToLicenses(
+      companyId,
+      msg.account as IHullAccount,
+    );
+    expect(actual).toHaveLength(0);
+  });
+
+  it("should map a Hull account with licencse data to an array of planhat licences", () => {
+    const privateSettings: any = _.cloneDeep(
+      accountUpdateMessage.connector.private_settings,
+    );
+    // Configure the private_settings
+    privateSettings.account_attributes_outbound = [];
+    privateSettings.account_licenses_attribute = "unified.ph_licenses";
+    privateSettings.account_licenses_attributes_outbound = [
+      {
+        hull_field_name: "id",
+        service_field_name: "externalId",
+      },
+      {
+        hull_field_name: "product",
+        service_field_name: "product",
+      },
+      {
+        hull_field_name: "currency",
+        service_field_name: "_currency",
+      },
+      {
+        hull_field_name: "start_date",
+        service_field_name: "fromDate",
+      },
+      {
+        hull_field_name: "mrr",
+        service_field_name: "mrr",
+      },
+    ];
+    const util = new MappingUtil(privateSettings);
+    const msg: IHullAccountUpdateMessage = _.cloneDeep(
+      accountUpdateMessage.messages[0],
+    ) as any;
+    // Set test data for licenses
+    const hullLicenses = [
+      {
+        id: "12345",
+        product: "License Fee",
+        currency: "USD",
+        start_date: "2019-12-11T11:46:08+02:00",
+        mrr: 499,
+      },
+    ];
+    _.set(msg, "account.unified.ph_licenses", hullLicenses);
+    const companyId = "5df0afda6c7e8e21d74136db";
+    const actual = util.mapHullAccountToLicenses(
+      companyId,
+      msg.account as IHullAccount,
+    );
+    const expected: PlanhatLicense[] = [
+      {
+        fromDate: hullLicenses[0].start_date,
+        _currency: hullLicenses[0].currency,
+        companyId,
+        externalId: hullLicenses[0].id,
+        product: hullLicenses[0].product,
+        mrr: hullLicenses[0].mrr,
+      },
+    ];
+    expect(actual).toHaveLength(1);
     expect(actual).toEqual(expected);
   });
 });

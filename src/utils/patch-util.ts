@@ -1,11 +1,11 @@
 import _ from "lodash";
-import IPrivateSettings, { IMappingEntry } from "../types/private-settings";
+import PrivateSettings, { MappingEntry } from "../types/private-settings";
 import { IPlanhatContact, IPlanhatCompany } from "../core/planhat-objects";
 
 class PatchUtil {
-  private connectorSettings: IPrivateSettings;
+  private connectorSettings: PrivateSettings;
 
-  constructor(connectorSettings: IPrivateSettings) {
+  constructor(connectorSettings: PrivateSettings) {
     this.connectorSettings = connectorSettings;
   }
 
@@ -17,7 +17,7 @@ class PatchUtil {
 
     _.forEach(
       this.connectorSettings.contact_attributes_outbound,
-      (mapping: IMappingEntry) => {
+      (mapping: MappingEntry) => {
         if (
           _.get(updatedObj, mapping.service_field_name as string, undefined) !==
           _.get(currentObj, mapping.service_field_name as string, undefined)
@@ -38,23 +38,6 @@ class PatchUtil {
             hasUpdate = true;
           } else if (mapping.service_field_name !== "name") {
             hasUpdate = true;
-            const valToUpdate = _.get(
-              updatedObj,
-              mapping.service_field_name as string,
-              undefined,
-            );
-            const valCurrent = _.get(
-              currentObj,
-              mapping.service_field_name as string,
-              undefined,
-            );
-            // eslint-disable-next-line no-console
-            console.log(
-              `${
-                mapping.service_field_name
-              }: ${valToUpdate} -> ${valCurrent} (equal? ${valToUpdate ===
-                valCurrent})`,
-            );
           }
         }
       },
@@ -63,7 +46,7 @@ class PatchUtil {
     // Check the custom attributes
     _.forEach(
       this.connectorSettings.contact_custom_attributes_outbound,
-      (mapping: IMappingEntry) => {
+      (mapping: MappingEntry) => {
         if (
           _.get(
             updatedObj,
@@ -73,23 +56,6 @@ class PatchUtil {
           _.get(currentObj, `custom.${mapping.service_field_name}`, undefined)
         ) {
           hasUpdate = true;
-          const valToUpdate = _.get(
-            updatedObj,
-            `custom.${mapping.service_field_name}`,
-            undefined,
-          );
-          const valCurrent = _.get(
-            currentObj,
-            `custom.${mapping.service_field_name}`,
-            undefined,
-          );
-          // eslint-disable-next-line no-console
-          console.log(
-            `${
-              mapping.service_field_name
-            }: ${valToUpdate} -> ${valCurrent} (equal? ${valToUpdate ===
-              valCurrent})`,
-          );
         }
       },
     );
@@ -105,7 +71,7 @@ class PatchUtil {
 
     _.forEach(
       this.connectorSettings.account_attributes_outbound,
-      (mapping: IMappingEntry) => {
+      (mapping: MappingEntry) => {
         if (
           _.get(updatedObj, mapping.service_field_name as string, undefined) !==
           _.get(currentObj, mapping.service_field_name as string, undefined)
@@ -118,7 +84,7 @@ class PatchUtil {
     // Check the custom attributes
     _.forEach(
       this.connectorSettings.account_custom_attributes_outbound,
-      (mapping: IMappingEntry) => {
+      (mapping: MappingEntry) => {
         if (
           _.get(
             updatedObj,

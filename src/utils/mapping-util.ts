@@ -1,24 +1,25 @@
 import _ from "lodash";
-import IPrivateSettings, { IMappingEntry } from "../types/private-settings";
+import PrivateSettings, { MappingEntry } from "../types/private-settings";
 import IHullUserUpdateMessage from "../types/user-update-message";
 import {
   IPlanhatContact,
   IPlanhatCompany,
   IPlanhatEvent,
   IOperationEnvelope,
+  PlanhatLicense,
 } from "../core/planhat-objects";
 import PLANHAT_PROPERTIES from "../core/planhat-properties";
 import IHullAccountUpdateMessage from "../types/account-update-message";
 import IHullUserEvent from "../types/user-event";
 import { IHullUserAttributes } from "../types/user";
 import IHullAccount, { IHullAccountAttributes } from "../types/account";
-import IApiResultObject from "../types/api-result";
+import ApiResultObject from "../types/api-result";
 import { IPlanhatAccountDictionary } from "../types/planhat-account-dict";
 
 class MappingUtil {
-  private connectorSettings: IPrivateSettings;
+  private connectorSettings: PrivateSettings;
 
-  constructor(connectorSettings: IPrivateSettings) {
+  constructor(connectorSettings: PrivateSettings) {
     this.connectorSettings = connectorSettings;
   }
 
@@ -39,7 +40,7 @@ class MappingUtil {
     };
     // Map all standard attributes
     const mappings = this.connectorSettings.contact_attributes_outbound;
-    _.forEach(mappings, (mapping: IMappingEntry) => {
+    _.forEach(mappings, (mapping: MappingEntry) => {
       if (
         mapping.service_field_name !== undefined &&
         _.get(mappedServiceProps, mapping.service_field_name, undefined) !==
@@ -75,7 +76,7 @@ class MappingUtil {
     // Map custom attributes
     const mappingsCustom = this.connectorSettings
       .contact_custom_attributes_outbound;
-    _.forEach(mappingsCustom, (mapping: IMappingEntry) => {
+    _.forEach(mappingsCustom, (mapping: MappingEntry) => {
       if (
         mapping.service_field_name !== undefined &&
         _.trim(mapping.service_field_name).length !== 0
@@ -160,9 +161,9 @@ class MappingUtil {
     // Obtain the mapped attributes from the Hull user
     const mappings = this.connectorSettings.contact_attributes_outbound;
     if (_.find(mappings, { service_field_name: "name" })) {
-      const mapping: IMappingEntry = _.find(mappings, {
+      const mapping: MappingEntry = _.find(mappings, {
         service_field_name: "name",
-      }) as IMappingEntry;
+      }) as MappingEntry;
       serviceObject.name = _.get(
         message,
         `user.${mapping.hull_field_name}`,
@@ -171,9 +172,9 @@ class MappingUtil {
     }
 
     if (_.find(mappings, { service_field_name: "externalId" })) {
-      const mapping: IMappingEntry = _.find(mappings, {
+      const mapping: MappingEntry = _.find(mappings, {
         service_field_name: "externalId",
-      }) as IMappingEntry;
+      }) as MappingEntry;
       serviceObject.externalId = _.get(
         message,
         `user.${mapping.hull_field_name}`,
@@ -182,9 +183,9 @@ class MappingUtil {
     }
 
     if (_.find(mappings, { service_field_name: "email" })) {
-      const mapping: IMappingEntry = _.find(mappings, {
+      const mapping: MappingEntry = _.find(mappings, {
         service_field_name: "email",
-      }) as IMappingEntry;
+      }) as MappingEntry;
       serviceObject.email = _.get(
         message,
         `user.${mapping.hull_field_name}`,
@@ -227,7 +228,7 @@ class MappingUtil {
     };
     // Map all standard attributes
     const mappings = this.connectorSettings.account_attributes_outbound;
-    _.forEach(mappings, (mapping: IMappingEntry) => {
+    _.forEach(mappings, (mapping: MappingEntry) => {
       if (
         mapping.service_field_name !== undefined &&
         _.get(mappedServiceProps, mapping.service_field_name, undefined) !==
@@ -247,7 +248,7 @@ class MappingUtil {
     // Map custom attributes
     const mappingsCustom = this.connectorSettings
       .account_custom_attributes_outbound;
-    _.forEach(mappingsCustom, (mapping: IMappingEntry) => {
+    _.forEach(mappingsCustom, (mapping: MappingEntry) => {
       if (
         mapping.service_field_name !== undefined &&
         _.trim(mapping.service_field_name).length !== 0
@@ -300,7 +301,7 @@ class MappingUtil {
     };
     // Map all standard attributes
     const mappings = this.connectorSettings.account_attributes_outbound;
-    _.forEach(mappings, (mapping: IMappingEntry) => {
+    _.forEach(mappings, (mapping: MappingEntry) => {
       if (
         mapping.service_field_name !== undefined &&
         _.get(mappedServiceProps, mapping.service_field_name, undefined) !==
@@ -320,7 +321,7 @@ class MappingUtil {
     // Map custom attributes
     const mappingsCustom = this.connectorSettings
       .account_custom_attributes_outbound;
-    _.forEach(mappingsCustom, (mapping: IMappingEntry) => {
+    _.forEach(mappingsCustom, (mapping: MappingEntry) => {
       if (
         mapping.service_field_name !== undefined &&
         _.trim(mapping.service_field_name).length !== 0
@@ -430,14 +431,14 @@ class MappingUtil {
    *
    * @param {Array<IOperationEnvelope<IPlanhatCompany>>} envelopes All valid envelopes.
    * @param {IOperationEnvelope<IPlanhatCompany>} currentEnvelope The current enevelope.
-   * @param {IApiResultObject<IPlanhatCompany>} updateOrInsertResult The insert or update result of the current envelope's account.
+   * @param {ApiResultObject<IPlanhatCompany>} updateOrInsertResult The insert or update result of the current envelope's account.
    * @memberof MappingUtil
    */
   // eslint-disable-next-line class-methods-use-this
   public updateUserEnvelopesWithCompanyId(
     envelopes: Array<IOperationEnvelope<IPlanhatContact>>,
     currentEnvelope: IOperationEnvelope<IPlanhatContact>,
-    updateOrInsertResult: IApiResultObject<IPlanhatCompany>,
+    updateOrInsertResult: ApiResultObject<IPlanhatCompany>,
   ): void {
     _.forEach(
       _.filter(envelopes, e => {
@@ -463,14 +464,14 @@ class MappingUtil {
    *
    * @param {Array<IOperationEnvelope<IPlanhatCompany>>} envelopes All valid envelopes.
    * @param {IOperationEnvelope<IPlanhatCompany>} currentEnvelope The current enevelope.
-   * @param {IApiResultObject<IPlanhatCompany>} updateOrInsertResult The insert or update result of the current envelope's account.
+   * @param {ApiResultObject<IPlanhatCompany>} updateOrInsertResult The insert or update result of the current envelope's account.
    * @memberof MappingUtil
    */
   // eslint-disable-next-line class-methods-use-this
   public updateEnvelopesWithCompanyId(
     envelopes: Array<IOperationEnvelope<IPlanhatCompany>>,
     currentEnvelope: IOperationEnvelope<IPlanhatCompany>,
-    updateOrInsertResult: IApiResultObject<IPlanhatCompany>,
+    updateOrInsertResult: ApiResultObject<IPlanhatCompany>,
   ): void {
     _.forEach(
       _.filter(envelopes, e => {
@@ -489,6 +490,87 @@ class MappingUtil {
         );
       },
     );
+  }
+
+  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
+  public mapHullAccountToLicenses(
+    companyId: string,
+    account: IHullAccount,
+  ): PlanhatLicense[] {
+    if (
+      this.connectorSettings.account_licenses_attribute === undefined ||
+      this.connectorSettings.account_licenses_attributes_outbound ===
+        undefined ||
+      this.connectorSettings.account_licenses_attributes_outbound === []
+    ) {
+      // eslint-disable-next-line no-console
+      console.log(
+        ">>> MAP SKIP: Incomplete mappings for licenses",
+        this.connectorSettings,
+      );
+      return [];
+    }
+
+    if (
+      _.get(
+        account,
+        this.connectorSettings.account_licenses_attribute,
+        undefined,
+      ) === undefined
+    ) {
+      // eslint-disable-next-line no-console
+      console.log(
+        ">>> MAP SKIP: Account has no license attribute",
+        this.connectorSettings,
+      );
+      return [];
+    }
+
+    const hullLicenses = _.get(
+      account,
+      this.connectorSettings.account_licenses_attribute,
+    );
+
+    if (!_.isArray(hullLicenses)) {
+      // eslint-disable-next-line no-console
+      console.log(
+        ">>> MAP SKIP: Account license attribute is no array",
+        this.connectorSettings,
+        hullLicenses,
+      );
+      return [];
+    }
+
+    const phLicenses = _.map(hullLicenses, l =>
+      this.mapHullLicenseItemToPlanhat(companyId, l),
+    );
+    return phLicenses;
+  }
+
+  private mapHullLicenseItemToPlanhat(
+    companyId: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    item: any,
+  ): PlanhatLicense {
+    const phItem = {
+      companyId,
+    };
+
+    _.forEach(
+      this.connectorSettings
+        .account_licenses_attributes_outbound as MappingEntry[],
+      m => {
+        if (_.get(item, m.hull_field_name as string, undefined) !== undefined) {
+          _.set(
+            phItem,
+            m.service_field_name as string,
+            _.get(item, m.hull_field_name as string),
+          );
+        }
+      },
+    );
+
+    return phItem as PlanhatLicense;
   }
 }
 

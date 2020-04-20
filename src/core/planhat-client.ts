@@ -1,13 +1,14 @@
-import _ from "lodash";
-import axios, { AxiosRequestConfig, AxiosError } from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 import {
   IPlanhatContact,
   IPlanhatCompany,
   IPlanhatEvent,
   PlanhatUser,
+  PlanhatLicense,
 } from "./planhat-objects";
-import IApiResultObject from "../types/api-result";
+import ApiResultObject from "../types/api-result";
 import IPlanhatClientConfig from "../types/planhat-client-config";
+import { ApiUtil } from "../utils/api-util";
 
 class PlanhatClient {
   private apiBaseUrl: string;
@@ -31,12 +32,12 @@ class PlanhatClient {
    * Finds a Planhat contact by email address.
    *
    * @param {string} email The email address of the contact.
-   * @returns {Promise<IApiResultObject<IPlanhatContact>>}
+   * @returns {Promise<ApiResultObject<IPlanhatContact>>}
    * @memberof PlanhatClient
    */
   public async findContactByEmail(
     email: string,
-  ): Promise<IApiResultObject<IPlanhatContact>> {
+  ): Promise<ApiResultObject<IPlanhatContact>> {
     const url = `${this.apiBaseUrl}/endusers?email=${email}`;
 
     const axiosConfig: AxiosRequestConfig = {
@@ -49,7 +50,7 @@ class PlanhatClient {
     try {
       const axiosResponse = await axios.get(url, axiosConfig);
 
-      const apiResult: IApiResultObject<IPlanhatContact> = {
+      const apiResult: ApiResultObject<IPlanhatContact> = {
         data: axiosResponse.data,
         endpoint: url,
         error:
@@ -61,26 +62,12 @@ class PlanhatClient {
 
       return apiResult;
     } catch (error) {
-      const axiosResponse = (error as AxiosError).response;
-
-      const apiResult: IApiResultObject<IPlanhatContact> = {
-        data: undefined,
-        endpoint: url,
-        error: (error as AxiosError).message,
-        method: "query",
-        record: undefined,
-        success: false,
-      };
-
-      if (axiosResponse !== undefined) {
-        apiResult.data = axiosResponse.data;
-        apiResult.error = [
-          (error as AxiosError).message,
-          axiosResponse.statusText,
-        ];
-      }
-
-      return apiResult;
+      return ApiUtil.handleApiResultError<IPlanhatContact>(
+        url,
+        "query",
+        undefined,
+        error,
+      );
     }
   }
 
@@ -88,12 +75,12 @@ class PlanhatClient {
    * Creates a new contact in Planhat.
    *
    * @param {IPlanhatContact} data The data about the contact.
-   * @returns {Promise<IApiResultObject<IPlanhatContact>>}
+   * @returns {Promise<ApiResultObject<IPlanhatContact>>}
    * @memberof PlanhatClient
    */
   public async createContact(
     data: IPlanhatContact,
-  ): Promise<IApiResultObject<IPlanhatContact>> {
+  ): Promise<ApiResultObject<IPlanhatContact>> {
     const url = `${this.apiBaseUrl}/endusers`;
 
     const axiosConfig: AxiosRequestConfig = {
@@ -106,7 +93,7 @@ class PlanhatClient {
     try {
       const axiosResponse = await axios.post(url, data, axiosConfig);
 
-      const apiResult: IApiResultObject<IPlanhatContact> = {
+      const apiResult: ApiResultObject<IPlanhatContact> = {
         data: axiosResponse.data,
         endpoint: url,
         error:
@@ -118,26 +105,12 @@ class PlanhatClient {
 
       return apiResult;
     } catch (error) {
-      const axiosResponse = (error as AxiosError).response;
-
-      const apiResult: IApiResultObject<IPlanhatContact> = {
-        data: undefined,
-        endpoint: url,
-        error: (error as AxiosError).message,
-        method: "insert",
-        record: data,
-        success: false,
-      };
-
-      if (axiosResponse !== undefined) {
-        apiResult.data = axiosResponse.data;
-        apiResult.error = [
-          (error as AxiosError).message,
-          axiosResponse.statusText,
-        ];
-      }
-
-      return apiResult;
+      return ApiUtil.handleApiResultError<IPlanhatContact>(
+        url,
+        "insert",
+        data,
+        error,
+      );
     }
   }
 
@@ -145,12 +118,12 @@ class PlanhatClient {
    * Updates an existing contact in Planhat.
    *
    * @param {IPlanhatContact} data The data about the contact.
-   * @returns {Promise<IApiResultObject<IPlanhatContact>>}
+   * @returns {Promise<ApiResultObject<IPlanhatContact>>}
    * @memberof PlanhatClient
    */
   public async updateContact(
     data: IPlanhatContact,
-  ): Promise<IApiResultObject<IPlanhatContact>> {
+  ): Promise<ApiResultObject<IPlanhatContact>> {
     const url = `${this.apiBaseUrl}/endusers/${data.id}`;
 
     const axiosConfig: AxiosRequestConfig = {
@@ -163,7 +136,7 @@ class PlanhatClient {
     try {
       const axiosResponse = await axios.put(url, data, axiosConfig);
 
-      const apiResult: IApiResultObject<IPlanhatContact> = {
+      const apiResult: ApiResultObject<IPlanhatContact> = {
         data: axiosResponse.data,
         endpoint: url,
         error:
@@ -175,26 +148,12 @@ class PlanhatClient {
 
       return apiResult;
     } catch (error) {
-      const axiosResponse = (error as AxiosError).response;
-
-      const apiResult: IApiResultObject<IPlanhatContact> = {
-        data: undefined,
-        endpoint: url,
-        error: (error as AxiosError).message,
-        method: "update",
-        record: data,
-        success: false,
-      };
-
-      if (axiosResponse !== undefined) {
-        apiResult.data = axiosResponse.data;
-        apiResult.error = [
-          (error as AxiosError).message,
-          axiosResponse.statusText,
-        ];
-      }
-
-      return apiResult;
+      return ApiUtil.handleApiResultError<IPlanhatContact>(
+        url,
+        "update",
+        data,
+        error,
+      );
     }
   }
 
@@ -202,12 +161,12 @@ class PlanhatClient {
    * Deletes an existing contact in Planhat.
    *
    * @param {string} id The Planhat identifier of the contact.
-   * @returns {Promise<IApiResultObject<IPlanhatContact>>}
+   * @returns {Promise<ApiResultObject<IPlanhatContact>>}
    * @memberof PlanhatClient
    */
   public async deleteContact(
     id: string,
-  ): Promise<IApiResultObject<IPlanhatContact>> {
+  ): Promise<ApiResultObject<IPlanhatContact>> {
     const url = `${this.apiBaseUrl}/endusers/${id}`;
 
     const axiosConfig: AxiosRequestConfig = {
@@ -220,7 +179,7 @@ class PlanhatClient {
     try {
       const axiosResponse = await axios.delete(url, axiosConfig);
 
-      const apiResult: IApiResultObject<IPlanhatContact> = {
+      const apiResult: ApiResultObject<IPlanhatContact> = {
         data: axiosResponse.data,
         endpoint: url,
         error:
@@ -232,26 +191,12 @@ class PlanhatClient {
 
       return apiResult;
     } catch (error) {
-      const axiosResponse = (error as AxiosError).response;
-
-      const apiResult: IApiResultObject<IPlanhatContact> = {
-        data: undefined,
-        endpoint: url,
-        error: (error as AxiosError).message,
-        method: "delete",
-        record: undefined,
-        success: false,
-      };
-
-      if (axiosResponse !== undefined) {
-        apiResult.data = axiosResponse.data;
-        apiResult.error = [
-          (error as AxiosError).message,
-          axiosResponse.statusText,
-        ];
-      }
-
-      return apiResult;
+      return ApiUtil.handleApiResultError<IPlanhatContact>(
+        url,
+        "delete",
+        undefined,
+        error,
+      );
     }
   }
 
@@ -259,12 +204,12 @@ class PlanhatClient {
    * Gets a Planhat company by the internal identifier.
    *
    * @param {string} id The Planhat identifier.
-   * @returns {Promise<IApiResultObject<IPlanhatCompany>>}
+   * @returns {Promise<ApiResultObject<IPlanhatCompany>>}
    * @memberof PlanhatClient
    */
   public async getCompanyById(
     id: string,
-  ): Promise<IApiResultObject<IPlanhatCompany>> {
+  ): Promise<ApiResultObject<IPlanhatCompany>> {
     const url = `${this.apiBaseUrl}/companies/${id}`;
 
     const axiosConfig: AxiosRequestConfig = {
@@ -277,7 +222,7 @@ class PlanhatClient {
     try {
       const axiosResponse = await axios.get(url, axiosConfig);
 
-      const apiResult: IApiResultObject<IPlanhatCompany> = {
+      const apiResult: ApiResultObject<IPlanhatCompany> = {
         data: axiosResponse.data,
         endpoint: url,
         error:
@@ -289,26 +234,12 @@ class PlanhatClient {
 
       return apiResult;
     } catch (error) {
-      const axiosResponse = (error as AxiosError).response;
-
-      const apiResult: IApiResultObject<IPlanhatCompany> = {
-        data: undefined,
-        endpoint: url,
-        error: (error as AxiosError).message,
-        method: "query",
-        record: undefined,
-        success: false,
-      };
-
-      if (axiosResponse !== undefined) {
-        apiResult.data = axiosResponse.data;
-        apiResult.error = [
-          (error as AxiosError).message,
-          axiosResponse.statusText,
-        ];
-      }
-
-      return apiResult;
+      return ApiUtil.handleApiResultError<IPlanhatCompany>(
+        url,
+        "query",
+        undefined,
+        error,
+      );
     }
   }
 
@@ -316,12 +247,12 @@ class PlanhatClient {
    * Finds a Planhat company by external ID.
    *
    * @param {string} externalId The external ID of the company.
-   * @returns {Promise<IApiResultObject<IPlanhatCompany>>}
+   * @returns {Promise<ApiResultObject<IPlanhatCompany>>}
    * @memberof PlanhatClient
    */
   public async findCompanyByExternalId(
     externalId: string,
-  ): Promise<IApiResultObject<IPlanhatCompany>> {
+  ): Promise<ApiResultObject<IPlanhatCompany>> {
     const url = `${this.apiBaseUrl}/leancompanies?externalId=${externalId}`;
 
     const axiosConfig: AxiosRequestConfig = {
@@ -334,7 +265,7 @@ class PlanhatClient {
     try {
       const axiosResponse = await axios.get(url, axiosConfig);
 
-      const apiResult: IApiResultObject<IPlanhatCompany> = {
+      const apiResult: ApiResultObject<IPlanhatCompany> = {
         data: axiosResponse.data,
         endpoint: url,
         error:
@@ -346,26 +277,12 @@ class PlanhatClient {
 
       return apiResult;
     } catch (error) {
-      const axiosResponse = (error as AxiosError).response;
-
-      const apiResult: IApiResultObject<IPlanhatCompany> = {
-        data: undefined,
-        endpoint: url,
-        error: (error as AxiosError).message,
-        method: "query",
-        record: undefined,
-        success: false,
-      };
-
-      if (axiosResponse !== undefined) {
-        apiResult.data = axiosResponse.data;
-        apiResult.error = [
-          (error as AxiosError).message,
-          axiosResponse.statusText,
-        ];
-      }
-
-      return apiResult;
+      return ApiUtil.handleApiResultError<IPlanhatCompany>(
+        url,
+        "query",
+        undefined,
+        error,
+      );
     }
   }
 
@@ -373,12 +290,12 @@ class PlanhatClient {
    * Creates a new company in Planhat.
    *
    * @param {IPlanhatCompany} data The data about the company.
-   * @returns {Promise<IApiResultObject<IPlanhatCompany>>}
+   * @returns {Promise<ApiResultObject<IPlanhatCompany>>}
    * @memberof PlanhatClient
    */
   public async createCompany(
     data: IPlanhatCompany,
-  ): Promise<IApiResultObject<IPlanhatCompany>> {
+  ): Promise<ApiResultObject<IPlanhatCompany>> {
     const url = `${this.apiBaseUrl}/companies`;
 
     const axiosConfig: AxiosRequestConfig = {
@@ -391,7 +308,7 @@ class PlanhatClient {
     try {
       const axiosResponse = await axios.post(url, data, axiosConfig);
 
-      const apiResult: IApiResultObject<IPlanhatCompany> = {
+      const apiResult: ApiResultObject<IPlanhatCompany> = {
         data: axiosResponse.data,
         endpoint: url,
         error:
@@ -403,26 +320,12 @@ class PlanhatClient {
 
       return apiResult;
     } catch (error) {
-      const axiosResponse = (error as AxiosError).response;
-
-      const apiResult: IApiResultObject<IPlanhatCompany> = {
-        data: undefined,
-        endpoint: url,
-        error: (error as AxiosError).message,
-        method: "insert",
-        record: data,
-        success: false,
-      };
-
-      if (axiosResponse !== undefined) {
-        apiResult.data = axiosResponse.data;
-        apiResult.error = _.compact([
-          (error as AxiosError).message,
-          axiosResponse.statusText,
-        ]);
-      }
-
-      return apiResult;
+      return ApiUtil.handleApiResultError<IPlanhatCompany>(
+        url,
+        "insert",
+        data,
+        error,
+      );
     }
   }
 
@@ -430,12 +333,12 @@ class PlanhatClient {
    * Updates an existing company in Planhat.
    *
    * @param {IPlanhatCompany} data The data about the company.
-   * @returns {Promise<IApiResultObject<IPlanhatCompany>>}
+   * @returns {Promise<ApiResultObject<IPlanhatCompany>>}
    * @memberof PlanhatClient
    */
   public async updateCompany(
     data: IPlanhatCompany,
-  ): Promise<IApiResultObject<IPlanhatCompany>> {
+  ): Promise<ApiResultObject<IPlanhatCompany>> {
     const url = `${this.apiBaseUrl}/companies/${data.id}`;
 
     const axiosConfig: AxiosRequestConfig = {
@@ -448,7 +351,7 @@ class PlanhatClient {
     try {
       const axiosResponse = await axios.put(url, data, axiosConfig);
 
-      const apiResult: IApiResultObject<IPlanhatCompany> = {
+      const apiResult: ApiResultObject<IPlanhatCompany> = {
         data: axiosResponse.data,
         endpoint: url,
         error:
@@ -460,26 +363,12 @@ class PlanhatClient {
 
       return apiResult;
     } catch (error) {
-      const axiosResponse = (error as AxiosError).response;
-
-      const apiResult: IApiResultObject<IPlanhatCompany> = {
-        data: undefined,
-        endpoint: url,
-        error: (error as AxiosError).message,
-        method: "update",
-        record: data,
-        success: false,
-      };
-
-      if (axiosResponse !== undefined) {
-        apiResult.data = axiosResponse.data;
-        apiResult.error = [
-          (error as AxiosError).message,
-          axiosResponse.statusText,
-        ];
-      }
-
-      return apiResult;
+      return ApiUtil.handleApiResultError<IPlanhatCompany>(
+        url,
+        "update",
+        data,
+        error,
+      );
     }
   }
 
@@ -487,12 +376,12 @@ class PlanhatClient {
    * Deletes an existing company in Planhat
    *
    * @param {string} id The Planhat identifier of the company.
-   * @returns {Promise<IApiResultObject<IPlanhatCompany>>}
+   * @returns {Promise<ApiResultObject<IPlanhatCompany>>}
    * @memberof PlanhatClient
    */
   public async deleteCompany(
     id: string,
-  ): Promise<IApiResultObject<IPlanhatCompany>> {
+  ): Promise<ApiResultObject<IPlanhatCompany>> {
     const url = `${this.apiBaseUrl}/companies/${id}`;
 
     const axiosConfig: AxiosRequestConfig = {
@@ -505,7 +394,7 @@ class PlanhatClient {
     try {
       const axiosResponse = await axios.delete(url, axiosConfig);
 
-      const apiResult: IApiResultObject<IPlanhatCompany> = {
+      const apiResult: ApiResultObject<IPlanhatCompany> = {
         data: axiosResponse.data,
         endpoint: url,
         error:
@@ -517,26 +406,12 @@ class PlanhatClient {
 
       return apiResult;
     } catch (error) {
-      const axiosResponse = (error as AxiosError).response;
-
-      const apiResult: IApiResultObject<IPlanhatCompany> = {
-        data: undefined,
-        endpoint: url,
-        error: (error as AxiosError).message,
-        method: "delete",
-        record: undefined,
-        success: false,
-      };
-
-      if (axiosResponse !== undefined) {
-        apiResult.data = axiosResponse.data;
-        apiResult.error = [
-          (error as AxiosError).message,
-          axiosResponse.statusText,
-        ];
-      }
-
-      return apiResult;
+      return ApiUtil.handleApiResultError<IPlanhatCompany>(
+        url,
+        "delete",
+        undefined,
+        error,
+      );
     }
   }
 
@@ -544,12 +419,12 @@ class PlanhatClient {
    * Tracks an event in Planhat
    *
    * @param {IPlanhatEvent} data The data about the event.
-   * @returns {Promise<IApiResultObject<IPlanhatEvent>>}
+   * @returns {Promise<ApiResultObject<IPlanhatEvent>>}
    * @memberof PlanhatClient
    */
   public async trackEvent(
     data: IPlanhatEvent,
-  ): Promise<IApiResultObject<IPlanhatEvent>> {
+  ): Promise<ApiResultObject<IPlanhatEvent>> {
     const url = `https://analytics.planhat.com/analytics/${this.tenantId}`;
     const axiosConfig: AxiosRequestConfig = {
       headers: {
@@ -561,7 +436,7 @@ class PlanhatClient {
     try {
       const axiosResponse = await axios.post(url, data, axiosConfig);
 
-      const apiResult: IApiResultObject<IPlanhatEvent> = {
+      const apiResult: ApiResultObject<IPlanhatEvent> = {
         data: axiosResponse.data,
         endpoint: url,
         error:
@@ -573,36 +448,22 @@ class PlanhatClient {
 
       return apiResult;
     } catch (error) {
-      const axiosResponse = (error as AxiosError).response;
-
-      const apiResult: IApiResultObject<IPlanhatEvent> = {
-        data: undefined,
-        endpoint: url,
-        error: (error as AxiosError).message,
-        method: "insert",
-        record: data,
-        success: false,
-      };
-
-      if (axiosResponse !== undefined) {
-        apiResult.data = axiosResponse.data;
-        apiResult.error = [
-          (error as AxiosError).message,
-          axiosResponse.statusText,
-        ];
-      }
-
-      return apiResult;
+      return ApiUtil.handleApiResultError<IPlanhatEvent>(
+        url,
+        "insert",
+        data,
+        error,
+      );
     }
   }
 
   /**
    * Lists all users of the Planhat App
    *
-   * @returns {Promise<IApiResultObject<PlanhatUser>>} The API result with the array of users.
+   * @returns {Promise<ApiResultObject<PlanhatUser>>} The API result with the array of users.
    * @memberof PlanhatClient
    */
-  public async listUsers(): Promise<IApiResultObject<PlanhatUser>> {
+  public async listUsers(): Promise<ApiResultObject<PlanhatUser>> {
     const url = `${this.apiBaseUrl}/users`;
 
     const axiosConfig: AxiosRequestConfig = {
@@ -615,7 +476,7 @@ class PlanhatClient {
     try {
       const axiosResponse = await axios.get(url, axiosConfig);
 
-      const apiResult: IApiResultObject<PlanhatUser> = {
+      const apiResult: ApiResultObject<PlanhatUser> = {
         data: axiosResponse.data,
         endpoint: url,
         error:
@@ -627,26 +488,12 @@ class PlanhatClient {
 
       return apiResult;
     } catch (error) {
-      const axiosResponse = (error as AxiosError).response;
-
-      const apiResult: IApiResultObject<PlanhatUser> = {
-        data: undefined,
-        endpoint: url,
-        error: (error as AxiosError).message,
-        method: "query",
-        record: undefined,
-        success: false,
-      };
-
-      if (axiosResponse !== undefined) {
-        apiResult.data = axiosResponse.data;
-        apiResult.error = [
-          (error as AxiosError).message,
-          axiosResponse.statusText,
-        ];
-      }
-
-      return apiResult;
+      return ApiUtil.handleApiResultError<PlanhatUser>(
+        url,
+        "query",
+        undefined,
+        error,
+      );
     }
   }
 
@@ -654,10 +501,10 @@ class PlanhatClient {
    * Gets a user by the specified identifier.
    *
    * @param {string} id The Planhat ID of the user
-   * @returns {Promise<IApiResultObject<PlanhatUser>>} The API result containing the user data.
+   * @returns {Promise<ApiResultObject<PlanhatUser>>} The API result containing the user data.
    * @memberof PlanhatClient
    */
-  public async getUserById(id: string): Promise<IApiResultObject<PlanhatUser>> {
+  public async getUserById(id: string): Promise<ApiResultObject<PlanhatUser>> {
     const url = `${this.apiBaseUrl}/users/${id}`;
 
     const axiosConfig: AxiosRequestConfig = {
@@ -670,7 +517,7 @@ class PlanhatClient {
     try {
       const axiosResponse = await axios.get(url, axiosConfig);
 
-      const apiResult: IApiResultObject<PlanhatUser> = {
+      const apiResult: ApiResultObject<PlanhatUser> = {
         data: axiosResponse.data,
         endpoint: url,
         error:
@@ -682,26 +529,12 @@ class PlanhatClient {
 
       return apiResult;
     } catch (error) {
-      const axiosResponse = (error as AxiosError).response;
-
-      const apiResult: IApiResultObject<PlanhatUser> = {
-        data: undefined,
-        endpoint: url,
-        error: (error as AxiosError).message,
-        method: "query",
-        record: undefined,
-        success: false,
-      };
-
-      if (axiosResponse !== undefined) {
-        apiResult.data = axiosResponse.data;
-        apiResult.error = [
-          (error as AxiosError).message,
-          axiosResponse.statusText,
-        ];
-      }
-
-      return apiResult;
+      return ApiUtil.handleApiResultError<PlanhatUser>(
+        url,
+        "query",
+        undefined,
+        error,
+      );
     }
   }
 
@@ -709,12 +542,12 @@ class PlanhatClient {
    * Create a new user with the provided parameters.
    *
    * @param {PlanhatUser} data The information about the user to create.
-   * @returns {Promise<IApiResultObject<PlanhatUser>>} The API result containing data about the user creation.
+   * @returns {Promise<ApiResultObject<PlanhatUser>>} The API result containing data about the user creation.
    * @memberof PlanhatClient
    */
   public async createUser(
     data: PlanhatUser,
-  ): Promise<IApiResultObject<PlanhatUser>> {
+  ): Promise<ApiResultObject<PlanhatUser>> {
     const url = `${this.apiBaseUrl}/users`;
 
     const axiosConfig: AxiosRequestConfig = {
@@ -727,7 +560,7 @@ class PlanhatClient {
     try {
       const axiosResponse = await axios.post(url, data, axiosConfig);
 
-      const apiResult: IApiResultObject<PlanhatUser> = {
+      const apiResult: ApiResultObject<PlanhatUser> = {
         data: axiosResponse.data,
         endpoint: url,
         error:
@@ -739,33 +572,19 @@ class PlanhatClient {
 
       return apiResult;
     } catch (error) {
-      const axiosResponse = (error as AxiosError).response;
-
-      const apiResult: IApiResultObject<PlanhatUser> = {
-        data: undefined,
-        endpoint: url,
-        error: (error as AxiosError).message,
-        method: "insert",
-        record: data,
-        success: false,
-      };
-
-      if (axiosResponse !== undefined) {
-        apiResult.data = axiosResponse.data;
-        apiResult.error = [
-          (error as AxiosError).message,
-          axiosResponse.statusText,
-        ];
-      }
-
-      return apiResult;
+      return ApiUtil.handleApiResultError<PlanhatUser>(
+        url,
+        "insert",
+        data,
+        error,
+      );
     }
   }
 
   public async updateUser(
     id: string,
     data: PlanhatUser,
-  ): Promise<IApiResultObject<PlanhatUser>> {
+  ): Promise<ApiResultObject<PlanhatUser>> {
     const url = `${this.apiBaseUrl}/users/${id}`;
 
     const axiosConfig: AxiosRequestConfig = {
@@ -778,7 +597,7 @@ class PlanhatClient {
     try {
       const axiosResponse = await axios.put(url, data, axiosConfig);
 
-      const apiResult: IApiResultObject<PlanhatUser> = {
+      const apiResult: ApiResultObject<PlanhatUser> = {
         data: axiosResponse.data,
         endpoint: url,
         error:
@@ -790,27 +609,157 @@ class PlanhatClient {
 
       return apiResult;
     } catch (error) {
-      const axiosResponse = (error as AxiosError).response;
-
-      const apiResult: IApiResultObject<PlanhatUser> = {
-        data: undefined,
-        endpoint: url,
-        error: (error as AxiosError).message,
-        method: "update",
-        record: data,
-        success: false,
-      };
-
-      if (axiosResponse !== undefined) {
-        apiResult.data = axiosResponse.data;
-        apiResult.error = [
-          (error as AxiosError).message,
-          axiosResponse.statusText,
-        ];
-      }
-
-      return apiResult;
+      return ApiUtil.handleApiResultError<PlanhatUser>(
+        url,
+        "update",
+        data,
+        error,
+      );
     }
+  }
+
+  /**
+   * Gets a license by the specified identifier.
+   *
+   * @param {string} companyId The Planhat ID of the company
+   * @param {string} id The Planhat ID of the license
+   * @returns {Promise<ApiResultObject<PlanhatLicense>>} The API result containing the license data.
+   * @memberof PlanhatClient
+   */
+  public async getLicenseById(
+    companyId: string,
+    id: string,
+  ): Promise<ApiResultObject<PlanhatLicense>> {
+    const url = `${this.apiBaseUrl}/companies/${companyId}/licenses/${id}`;
+    const axiosConfig = this.getAxiosConfig();
+
+    try {
+      const axiosResponse = await axios.get(url, axiosConfig);
+      return ApiUtil.handleApiResultSuccess<PlanhatLicense>(
+        url,
+        "query",
+        undefined,
+        axiosResponse,
+      );
+    } catch (error) {
+      return ApiUtil.handleApiResultError<PlanhatLicense>(
+        url,
+        "query",
+        undefined,
+        error,
+      );
+    }
+  }
+
+  public async createLicense(
+    companyId: string,
+    data: PlanhatLicense,
+  ): Promise<ApiResultObject<PlanhatLicense>> {
+    const url = `${this.apiBaseUrl}/companies/${companyId}/licenses`;
+    const axiosConfig = this.getAxiosConfig();
+
+    try {
+      const axiosResponse = await axios.post(url, data, axiosConfig);
+      return ApiUtil.handleApiResultSuccess<PlanhatLicense>(
+        url,
+        "insert",
+        data,
+        axiosResponse,
+      );
+    } catch (error) {
+      return ApiUtil.handleApiResultError<PlanhatLicense>(
+        url,
+        "insert",
+        data,
+        error,
+      );
+    }
+  }
+
+  public async updateLicense(
+    companyId: string,
+    id: string,
+    data: PlanhatLicense,
+  ): Promise<ApiResultObject<PlanhatLicense>> {
+    const url = `${this.apiBaseUrl}/companies/${companyId}/licenses/${id}`;
+    const axiosConfig = this.getAxiosConfig();
+
+    try {
+      const axiosResponse = await axios.put(url, data, axiosConfig);
+      return ApiUtil.handleApiResultSuccess<PlanhatLicense>(
+        url,
+        "update",
+        data,
+        axiosResponse,
+      );
+    } catch (error) {
+      return ApiUtil.handleApiResultError<PlanhatLicense>(
+        url,
+        "update",
+        data,
+        error,
+      );
+    }
+  }
+
+  public async bulkUpsertLicenses(
+    data: PlanhatLicense[],
+  ): Promise<ApiResultObject<Array<PlanhatLicense>>> {
+    const url = `${this.apiBaseUrl}/licenses`;
+    const axiosConfig = this.getAxiosConfig();
+
+    try {
+      const axiosResponse = await axios.put(url, data, axiosConfig);
+      return ApiUtil.handleApiResultSuccess<Array<PlanhatLicense>>(
+        url,
+        "bulkUpsert",
+        data,
+        axiosResponse,
+      );
+    } catch (error) {
+      return ApiUtil.handleApiResultError<Array<PlanhatLicense>>(
+        url,
+        "bulkUpsert",
+        data,
+        error,
+      );
+    }
+  }
+
+  public async deleteLicense(
+    companyId: string,
+    id: string,
+  ): Promise<ApiResultObject<PlanhatLicense>> {
+    const url = `${this.apiBaseUrl}/companies/${companyId}/licenses/${id}`;
+    const axiosConfig = this.getAxiosConfig();
+
+    try {
+      const axiosResponse = await axios.delete(url, axiosConfig);
+      return ApiUtil.handleApiResultSuccess<PlanhatLicense>(
+        url,
+        "delete",
+        undefined,
+        axiosResponse,
+      );
+    } catch (error) {
+      return ApiUtil.handleApiResultError<PlanhatLicense>(
+        url,
+        "delete",
+        undefined,
+        error,
+      );
+    }
+  }
+
+  private getAxiosConfig(): AxiosRequestConfig {
+    const axiosConfig: AxiosRequestConfig = {
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+      responseType: "json",
+    };
+
+    return axiosConfig;
   }
 }
 

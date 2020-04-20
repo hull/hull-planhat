@@ -44,6 +44,7 @@ describe("SyncAgent", () => {
     "contact-skip-companyerror",
     "contact-skip-nochanges",
     "event-track",
+    "event-track-error",
   ];
 
   _.forEach(scenarios, scenarioName => {
@@ -77,7 +78,12 @@ describe("SyncAgent", () => {
     });
   });
 
-  const acctScenarios = ["account-insert", "account-update"];
+  const acctScenarios = [
+    "account-insert",
+    "account-update",
+    "account-insert-licenses",
+    "account-update-licenses",
+  ];
 
   _.forEach(acctScenarios, scenarioName => {
     it(`should handle ${scenarioName}`, async () => {
