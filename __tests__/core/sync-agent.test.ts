@@ -1,11 +1,13 @@
 import nock from "nock";
 import _ from "lodash";
+import { AwilixContainer, createContainer } from "awilix";
 import { ContextMock } from "../_helpers/mocks";
 import SyncAgent from "../../src/core/sync-agent";
 
 /* eslint-disable global-require, import/no-dynamic-require, @typescript-eslint/no-explicit-any */
 describe("SyncAgent", () => {
   let ctxMock: ContextMock;
+  let container: AwilixContainer;
 
   beforeEach(() => {
     ctxMock = new ContextMock(
@@ -23,10 +25,13 @@ describe("SyncAgent", () => {
         contact_synchronized_segments: [],
       },
     );
+
+    container = createContainer();
   });
 
   afterEach(() => {
     nock.cleanAll();
+    container.dispose();
   });
 
   test("smoke test", () => {
@@ -60,6 +65,7 @@ describe("SyncAgent", () => {
         ctxMock.client,
         ctxMock.connector,
         ctxMock.metric,
+        container,
       );
 
       const apiResponseSetupFn: (
@@ -99,6 +105,7 @@ describe("SyncAgent", () => {
         ctxMock.client,
         ctxMock.connector,
         ctxMock.metric,
+        container,
       );
 
       const apiResponseSetupFn: (

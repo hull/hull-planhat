@@ -1,15 +1,10 @@
 import { Request, Response } from "express";
 import _ from "lodash";
-import { ClientOpts } from "redis";
 import PrivateSettings from "../types/private-settings";
 import PlanhatClient from "../core/planhat-client";
 import IPlanhatClientConfig from "../types/planhat-client-config";
 import { ConnectorRedisClient } from "../utils/redis-client";
 import { PlanhatUser } from "../core/planhat-objects";
-
-const redisOpts: ClientOpts = {
-  url: process.env.REDIS_URL,
-};
 
 const instantiateServiceClient = (req: Request): PlanhatClient => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -45,11 +40,8 @@ export const listUsers = async (
   }
 
   try {
-    const redisClient = new ConnectorRedisClient(
-      redisOpts,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (req as any).hull.client.logger,
-    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { redisClient }: { redisClient: ConnectorRedisClient } = req as any;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const connector: any = (req as any).hull.ship;
     const svcClient = instantiateServiceClient(req);
@@ -127,16 +119,14 @@ export const createUser = async (
     const apiResult = await svcClient.createUser(data);
 
     // Bust the cache
-    const redisClient = new ConnectorRedisClient(
-      redisOpts,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (req as any).hull.client.logger,
-    );
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { redisClient }: { redisClient: ConnectorRedisClient } = req as any;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const connector: any = (req as any).hull.ship;
     await redisClient.delete(`users_${connector.id}`);
 
+    // Return the API result
     res.json(_.get(apiResult, "data", undefined));
     return Promise.resolve(true);
   } catch (error) {
@@ -170,12 +160,8 @@ export const updateUser = async (
     const apiResult = await svcClient.updateUser(id, data);
 
     // Bust the cache
-    const redisClient = new ConnectorRedisClient(
-      redisOpts,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (req as any).hull.client.logger,
-    );
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { redisClient }: { redisClient: ConnectorRedisClient } = req as any;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const connector: any = (req as any).hull.ship;
     await redisClient.delete(`users_${connector.id}`);

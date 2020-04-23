@@ -54,6 +54,7 @@
   },
   "homepage": "https://github.com/SMK1085/hull-planhat#readme",
   "dependencies": {
+    "awilix": "^4.2.6",
     "axios": "^0.19.2",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",

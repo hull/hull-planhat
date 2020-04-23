@@ -1,4 +1,4 @@
-import redis, { RedisClient, ClientOpts } from "redis";
+import redis, { RedisClient } from "redis";
 
 const COMPONENT_ID = "utils.ConnectorRedisClient";
 
@@ -9,9 +9,9 @@ export class ConnectorRedisClient {
   private readonly logger: any;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(config: ClientOpts, logger: any) {
-    this.logger = logger;
-    this.redisClient = redis.createClient(config);
+  constructor(opts: any) {
+    this.logger = opts.logger || console;
+    this.redisClient = redis.createClient(opts.redisClientOpts);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.redisClient.on("error", (err: any) => {
       this.logger.error({
@@ -382,5 +382,21 @@ export class ConnectorRedisClient {
         );
       },
     );
+  }
+
+  public async quit(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.redisClient.quit((err: Error | null) => {
+        if (err) {
+          return reject(err);
+        }
+
+        return resolve();
+      });
+    });
+  }
+
+  public end(): void {
+    this.redisClient.end(true);
   }
 }

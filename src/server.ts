@@ -3,10 +3,28 @@ import { Application } from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import { smartNotifierHandler } from "hull/lib/utils";
+import { createContainer, asValue, asClass } from "awilix";
+import { ClientOpts } from "redis";
 import actions from "./actions";
 import authMiddleware from "./utils/auth-middleware";
+import redisMiddlewareFactory from "./utils/redis-middleware";
+import { ConnectorRedisClient } from "./utils/redis-client";
 
 const server = (app: Application): Application => {
+  // DI Container
+  const container = createContainer();
+
+  // DI for Redis
+  const redisClientOpts: ClientOpts = {
+    url: process.env.REDIS_URL,
+  };
+
+  container.register({
+    redisClient: asClass(ConnectorRedisClient).singleton(),
+    redisClientOpts: asValue(redisClientOpts),
+    logger: asValue(console),
+  });
+
   // Hull platform handler endpoints
   app.post(
     "/smart-notifier",
@@ -22,6 +40,7 @@ const server = (app: Application): Application => {
               10,
             ),
           },
+          container,
         }),
         "account:update": actions.accountUpdate({
           flowControl: {
@@ -33,6 +52,7 @@ const server = (app: Application): Application => {
               10,
             ),
           },
+          container,
         }),
       },
     }),
@@ -45,11 +65,13 @@ const server = (app: Application): Application => {
         groupTraits: false,
       },
       handlers: {
-        "user:update": actions.userUpdate({ isBatch: true }),
-        "account:update": actions.accountUpdate({ isBatch: true }),
+        "user:update": actions.userUpdate({ isBatch: true, container }),
+        "account:update": actions.accountUpdate({ isBatch: true, container }),
       },
     }),
   );
+
+  // app.use(redisMiddlewareFactory(container));
 
   // CORS enabled endpoints for manifest.json
   app.get("/schema/(:type)", cors(), actions.fieldsSchema);
@@ -57,17 +79,25 @@ const server = (app: Application): Application => {
   // Internal API
   const jsonParser = bodyParser.json();
 
-  app.get("/api/internal/users", cors(), authMiddleware, actions.listUsers);
+  app.get(
+    "/api/internal/users",
+    cors(),
+    authMiddleware,
+    redisMiddlewareFactory(container),
+    actions.listUsers,
+  );
   app.get(
     "/api/internal/users/:userId",
     cors(),
     authMiddleware,
+    redisMiddlewareFactory(container),
     actions.getUserById,
   );
   app.post(
     "/api/internal/users",
     cors(),
     authMiddleware,
+    redisMiddlewareFactory(container),
     jsonParser,
     actions.createUser,
   );
@@ -75,9 +105,42 @@ const server = (app: Application): Application => {
     "/api/internal/users/:userId",
     cors(),
     authMiddleware,
+    redisMiddlewareFactory(container),
     jsonParser,
     actions.updateUser,
   );
+
+  // Dispose the container when the server closes
+  app.on("close", () => {
+    // eslint-disable-next-line no-console
+    console.log("Shutting down application...");
+    try {
+      const redisClient = container.resolve(
+        "redisClient",
+      ) as ConnectorRedisClient;
+      redisClient.end();
+    } finally {
+      container.dispose();
+    }
+  });
+
+  process.on("SIGINT", () => {
+    // eslint-disable-next-line no-console
+    console.log("Shutting down application on SIGINT...");
+    if (!container) {
+      return;
+    }
+    try {
+      const redisClient = container.resolve(
+        "redisClient",
+      ) as ConnectorRedisClient;
+      redisClient.end();
+      // eslint-disable-next-line no-console
+      console.log("Terminated Redis clients.");
+    } finally {
+      container.dispose();
+    }
+  });
 
   return app;
 };

@@ -28,5 +28,6 @@ module.exports = {
     "src/utils/**",
     "!src/utils/**/auth-middleware.ts",
     "!src/utils/**/redis-client.ts",
+    "!src/utils/**/redis-middleware.ts",
   ],
 };

@@ -1,4 +1,5 @@
 import _ from "lodash";
+import { AwilixContainer } from "awilix";
 import IHullClient from "../types/hull-client";
 import FilterUtil from "../utils/filter-util";
 import MappingUtil from "../utils/mapping-util";
@@ -12,6 +13,7 @@ import {
   IPlanhatCompany,
   PlanhatLicense,
   BulkUpsertResponse,
+  PlanhatUser,
 } from "./planhat-objects";
 import PlanhatClient from "./planhat-client";
 import IPlanhatClientConfig from "../types/planhat-client-config";
@@ -23,6 +25,7 @@ import { HullObjectType } from "../types/common-types";
 import { IHullUserClaims } from "../types/user";
 import { IPlanhatAccountDictionaryItem } from "../types/planhat-account-dict";
 import PatchUtil from "../utils/patch-util";
+import { ConnectorRedisClient } from "../utils/redis-client";
 
 /* eslint-disable no-underscore-dangle */
 
@@ -47,11 +50,20 @@ class SyncAgent {
 
   private _patchUtil: PatchUtil;
 
+  private diContainer: AwilixContainer;
+
   /**
    * Initializes a new class of the SyncAgent.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(client: IHullClient, connector: any, metricsClient: any) {
+  constructor(
+    client: IHullClient,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    connector: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    metricsClient: any,
+    container: AwilixContainer,
+  ) {
+    this.diContainer = container;
     this._hullClient = client;
     this._metricsClient = metricsClient;
     this._connector = connector;
@@ -92,7 +104,7 @@ class SyncAgent {
     }
 
     // Note: We need to query the users once here and update the utils with the values
-    const planhatUsersResult = await this._serviceClient.listUsers();
+    const planhatUsersResult = await this.getPlanhatUsers();
     this._filterUtil.setPlanhatUsers(planhatUsersResult.data);
 
     // Filter messages based on connector configuration
@@ -327,7 +339,7 @@ class SyncAgent {
     }
 
     // Note: We need to query the users once here and update the utils with the values
-    const planhatUsersResult = await this._serviceClient.listUsers();
+    const planhatUsersResult = await this.getPlanhatUsers();
     this._filterUtil.setPlanhatUsers(planhatUsersResult.data);
 
     try {
@@ -583,6 +595,37 @@ class SyncAgent {
     }
 
     return Promise.resolve(false);
+  }
+
+  private async getPlanhatUsers(): Promise<ApiResultObject<PlanhatUser>> {
+    let redisClient: ConnectorRedisClient | undefined;
+    try {
+      redisClient = this.diContainer.resolve("redisClient");
+    } catch (error) {
+      this._hullClient.logger.debug("connector.di.failed", error);
+    }
+
+    let result: ApiResultObject<PlanhatUser> = {
+      data: undefined,
+      endpoint: `redis/users_${this._connector.id}`,
+      method: "query",
+      record: undefined,
+      success: true,
+    };
+
+    if (redisClient !== undefined) {
+      const cachedData = await redisClient.get<Array<PlanhatUser>>(
+        `users_${this._connector.id}`,
+      );
+      result.data = cachedData;
+    }
+
+    if (result.data === undefined) {
+      // We either missed the cache or nothing is cached.
+      result = await this._serviceClient.listUsers();
+    }
+
+    return result;
   }
 }
 
