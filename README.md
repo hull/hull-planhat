@@ -1,5 +1,7 @@
 # hull-planhat
 
+![Node.js CI](https://github.com/SMK1085/hull-planhat/workflows/Node.js%20CI/badge.svg)
+
 Hull connector for planhat.com
 
 ## Features
