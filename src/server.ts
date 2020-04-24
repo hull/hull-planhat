@@ -71,7 +71,11 @@ const server = (app: Application): Application => {
     }),
   );
 
-  // app.use(redisMiddlewareFactory(container));
+  app.use(
+    "/status",
+    redisMiddlewareFactory(container),
+    actions.status(container),
+  );
 
   // CORS enabled endpoints for manifest.json
   app.get("/schema/(:type)", cors(), actions.fieldsSchema);

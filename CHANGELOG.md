@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.1.7 [BETA]
+
+- [bugfix] Exclude field `createDate` from update detection in `PatchUtil`
+- [feature] Add status endpoint for Hull platform
+- [maintenance] Update manifest defaults to reflect latest mapping strategy
+
 ## Version 0.1.6 [BETA]
 
 - [maintenance] Add unit and integration tests to automate manual tests

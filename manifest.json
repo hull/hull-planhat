@@ -56,8 +56,8 @@
       "type": "array",
       "format": "table",
       "default": [
-        { "hull_field_name": "name", "service_field_name": "Full name" },
-        { "hull_field_name": "email", "service_field_name": "Email" }
+        { "hull_field_name": "name", "service_field_name": "fullName" },
+        { "hull_field_name": "email", "service_field_name": "email" }
       ],
       "items": {
         "type": "object",
@@ -126,9 +126,7 @@
       "title": "Account attributes mapping",
       "type": "array",
       "format": "table",
-      "default": [
-        { "hull_field_name": "name", "service_field_name": "Name (*)" }
-      ],
+      "default": [{ "hull_field_name": "name", "service_field_name": "name" }],
       "items": {
         "type": "object",
         "properties": {
@@ -226,7 +224,13 @@
       }
     }
   ],
-  "schedules": [],
+  "schedules": [
+    {
+      "url": "/status",
+      "type": "interval",
+      "value": "30"
+    }
+  ],
   "subscriptions": [
     {
       "url": "/smart-notifier"

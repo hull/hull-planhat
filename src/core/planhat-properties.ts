@@ -9,6 +9,8 @@ const PLANHAT_PROPERTIES = {
     email: "Email",
     featured: "Featured",
     tags: "Tags",
+    firstName: "First name",
+    lastName: "Last Name",
   },
   COMPANIES: {
     name: "Name (*)",

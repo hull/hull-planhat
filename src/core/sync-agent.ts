@@ -26,6 +26,15 @@ import { IHullUserClaims } from "../types/user";
 import { IPlanhatAccountDictionaryItem } from "../types/planhat-account-dict";
 import PatchUtil from "../utils/patch-util";
 import { ConnectorRedisClient } from "../utils/redis-client";
+import { ConnectorStatusResponse } from "../types/connector-status";
+import {
+  STATUS_PAT_MISSING,
+  STATUS_TENANTID_MISSING,
+  STATUS_INVALID_MAPPING_PLANHAT,
+  STATUS_INCOMPLETE_LICENSEMAP_ITEMMAPPINGS,
+  STATUS_INCOMPLETE_LICENSEMAP_ACCOUNTATTRIBUTE,
+} from "./common-constants";
+import PLANHAT_PROPERTIES from "./planhat-properties";
 
 /* eslint-disable no-underscore-dangle */
 
@@ -507,6 +516,93 @@ class SyncAgent {
     }
 
     return Promise.resolve(true);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public async determineConnectorStatus(): Promise<ConnectorStatusResponse> {
+    const status: ConnectorStatusResponse = {
+      status: "ok",
+      messages: [],
+    };
+
+    // Check setup
+    if (
+      this._privateSettings.personal_acccess_token === undefined ||
+      this._privateSettings.personal_acccess_token === "" ||
+      _.trim(this._privateSettings.personal_acccess_token).length === 0
+    ) {
+      status.status = "setupRequired";
+      status.messages.push(STATUS_PAT_MISSING);
+    }
+
+    if (
+      this._privateSettings.tenant_id === undefined ||
+      this._privateSettings.tenant_id === "" ||
+      _.trim(this._privateSettings.tenant_id).length === 0
+    ) {
+      status.status = "setupRequired";
+      status.messages.push(STATUS_TENANTID_MISSING);
+    }
+
+    // Only check warning and error if setup check is green
+    if (status.status === "ok") {
+      // Check license configuration (out)
+      if (
+        !_.isNil(this._privateSettings.account_licenses_attribute) &&
+        (_.isNil(this._privateSettings.account_licenses_attributes_outbound) ||
+          this._privateSettings.account_licenses_attributes_outbound.length ===
+            0)
+      ) {
+        status.status = "warning";
+        status.messages.push(STATUS_INCOMPLETE_LICENSEMAP_ITEMMAPPINGS);
+      }
+      if (
+        _.isNil(this._privateSettings.account_licenses_attribute) &&
+        !_.isNil(this._privateSettings.account_licenses_attributes_outbound) &&
+        this._privateSettings.account_licenses_attributes_outbound.length !== 0
+      ) {
+        status.status = "warning";
+        status.messages.push(STATUS_INCOMPLETE_LICENSEMAP_ACCOUNTATTRIBUTE);
+      }
+      // Check restricted mappings for users (out)
+      const allowedPlanhatContactOut = _.keys(PLANHAT_PROPERTIES.CONTACTS);
+      _.forEach(this._privateSettings.contact_attributes_outbound, map => {
+        if (
+          map.hull_field_name !== undefined &&
+          map.service_field_name !== undefined &&
+          !allowedPlanhatContactOut.includes(map.service_field_name)
+        ) {
+          status.status = "error";
+          status.messages.push(
+            STATUS_INVALID_MAPPING_PLANHAT(
+              map.hull_field_name,
+              map.service_field_name,
+              "User attributes mapping",
+            ),
+          );
+        }
+      });
+      // Check restricted mappings for accounts (out)
+      const allowedPlanhatCompaniesOut = _.keys(PLANHAT_PROPERTIES.COMPANIES);
+      _.forEach(this._privateSettings.account_attributes_outbound, map => {
+        if (
+          map.hull_field_name !== undefined &&
+          map.service_field_name !== undefined &&
+          !allowedPlanhatCompaniesOut.includes(map.service_field_name)
+        ) {
+          status.status = "error";
+          status.messages.push(
+            STATUS_INVALID_MAPPING_PLANHAT(
+              map.hull_field_name,
+              map.service_field_name,
+              "Account attributes mapping",
+            ),
+          );
+        }
+      });
+    }
+
+    return Promise.resolve(status);
   }
 
   /**
