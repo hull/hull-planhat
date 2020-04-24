@@ -37,6 +37,12 @@ class PatchUtil {
           ) {
             hasUpdate = true;
           } else if (mapping.service_field_name !== "name") {
+            // eslint-disable-next-line no-console
+            console.log(
+              `>>> Change detected for field ${mapping.service_field_name}`,
+              updatedObj,
+              currentObj,
+            );
             hasUpdate = true;
           }
         }
@@ -55,6 +61,12 @@ class PatchUtil {
           ) !==
           _.get(currentObj, `custom.${mapping.service_field_name}`, undefined)
         ) {
+          // eslint-disable-next-line no-console
+          console.log(
+            `>>> Change detected for custom field ${mapping.service_field_name}`,
+            updatedObj,
+            currentObj,
+          );
           hasUpdate = true;
         }
       },
