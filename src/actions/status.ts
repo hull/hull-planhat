@@ -8,8 +8,8 @@ export const statusActionFactory = (
   return async (req: Request, res: Response): Promise<unknown> => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { hull, ship, metric } = (req as any).hull;
-      const syncAgent = new SyncAgent(hull, ship, metric, container);
+      const { client, ship, metric } = (req as any).hull;
+      const syncAgent = new SyncAgent(client, ship, metric, container);
       const status = await syncAgent.determineConnectorStatus();
       res.status(200).json(status);
       return Promise.resolve(true);
