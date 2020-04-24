@@ -201,6 +201,45 @@ class PlanhatClient {
   }
 
   /**
+   * Gets the list of endusers in Planhat using the provided pagination info.
+   *
+   * @param {number} offset The offset for pagination.
+   * @param {number} limit The limit for pagination.
+   * @returns {Promise<ApiResultObject<IPlanhatContact>>} The API result object.
+   * @memberof PlanhatClient
+   */
+  public async listEndusers(
+    offset: number,
+    limit: number,
+  ): Promise<ApiResultObject<IPlanhatContact>> {
+    const url = `${this.apiBaseUrl}/endusers?limit=${limit}&offset=${offset}`;
+    const axiosConfig = this.getAxiosConfig();
+
+    try {
+      const axiosResponse = await axios.get(url, axiosConfig);
+
+      const apiResult: ApiResultObject<IPlanhatContact> = {
+        data: axiosResponse.data,
+        endpoint: url,
+        error:
+          axiosResponse.status >= 400 ? axiosResponse.statusText : undefined,
+        method: "query",
+        record: undefined,
+        success: axiosResponse.status < 400,
+      };
+
+      return apiResult;
+    } catch (error) {
+      return ApiUtil.handleApiResultError<IPlanhatContact>(
+        url,
+        "query",
+        undefined,
+        error,
+      );
+    }
+  }
+
+  /**
    * Gets a Planhat company by the internal identifier.
    *
    * @param {string} id The Planhat identifier.
@@ -409,6 +448,45 @@ class PlanhatClient {
       return ApiUtil.handleApiResultError<IPlanhatCompany>(
         url,
         "delete",
+        undefined,
+        error,
+      );
+    }
+  }
+
+  /**
+   * Gets a list of companies in Planhat using the provided pagination info.
+   *
+   * @param {number} offset The offset for pagination.
+   * @param {number} limit The limit for pagination.
+   * @returns {Promise<ApiResultObject<IPlanhatCompany>>} An API result object.
+   * @memberof PlanhatClient
+   */
+  public async listCompanies(
+    offset: number,
+    limit: number,
+  ): Promise<ApiResultObject<IPlanhatCompany>> {
+    const url = `${this.apiBaseUrl}/companies?limit=${limit}&offset=${offset}`;
+    const axiosConfig = this.getAxiosConfig();
+
+    try {
+      const axiosResponse = await axios.get(url, axiosConfig);
+
+      const apiResult: ApiResultObject<IPlanhatCompany> = {
+        data: axiosResponse.data,
+        endpoint: url,
+        error:
+          axiosResponse.status >= 400 ? axiosResponse.statusText : undefined,
+        method: "query",
+        record: undefined,
+        success: axiosResponse.status < 400,
+      };
+
+      return apiResult;
+    } catch (error) {
+      return ApiUtil.handleApiResultError<IPlanhatCompany>(
+        url,
+        "query",
         undefined,
         error,
       );

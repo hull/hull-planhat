@@ -1,0 +1,30 @@
+[
+  {
+    "_id": "5e298986569b369503683cf6",
+    "shareable": {
+      "team": {
+        "fields": []
+      },
+      "enabled": false,
+      "euIds": [],
+      "sunits": false
+    },
+    "domains": [],
+    "tags": [],
+    "status": "customer",
+    "name": "Test Company",
+    "features": {},
+    "sunits": {},
+    "usage": {},
+    "alerts": [],
+    "customerFrom": "2020-01-23T15:46:00.000Z",
+    "lastRenewal": "2020-01-23T15:46:00.000Z",
+    "mr": 3750,
+    "mrTotal": 3950,
+    "mrr": 3750,
+    "mrrTotal": 3750,
+    "nrr30": 0,
+    "nrrTotal": 200,
+    "nextTouch": 1580229961944
+  }
+]

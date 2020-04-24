@@ -12,6 +12,8 @@ import IApiResultObject from "../../src/types/api-result";
 import PlanhatUsersResponseData from "../_data/planhat-users.json";
 import PlanhatUserResponseData from "../_data/planhat-user.json";
 import PlanhatLicenseResponseData from "../_data/planhat-license.json";
+import PlanhatCompaniesListResponseData from "../_data/planhat-companies.json";
+import PlanhatEndusersListResponseData from "../_data/planhat-endusers.json";
 
 describe("PlanhatClient", () => {
   beforeEach(() => {
@@ -1537,6 +1539,124 @@ describe("PlanhatClient", () => {
       // eslint-disable-next-line no-underscore-dangle
       endpoint: `https://api.planhat.com/companies/${companyId}/licenses/${planhatId}`,
       method: "delete",
+      record: undefined,
+      success: false,
+      error: ["Some arbitrary error"],
+    };
+    expect(actual).toEqual(expected);
+  });
+
+  it("should list companies", async () => {
+    const svcClientConfig: IPlanhatClientConfig = {
+      accessToken: "yp42nhyhAKFLUSg5y4u0w==",
+      apiPrefix: "api",
+      tenantId: "py3h8hbrn",
+    };
+
+    const limit = 100;
+    const offset = 0;
+
+    nock("https://api.planhat.com")
+      .matchHeader("authorization", `Bearer ${svcClientConfig.accessToken}`)
+      // eslint-disable-next-line no-underscore-dangle
+      .get(`/companies?limit=${limit}&offset=${offset}`)
+      .reply(200, PlanhatCompaniesListResponseData, {
+        "Content-Type": "application/json",
+      });
+
+    const svcClient = new PlanhatClient(svcClientConfig);
+    const actual = await svcClient.listCompanies(offset, limit);
+    const expected: IApiResultObject<IPlanhatCompany> = {
+      data: PlanhatCompaniesListResponseData,
+      // eslint-disable-next-line no-underscore-dangle
+      endpoint: `https://api.planhat.com/companies?limit=${limit}&offset=${offset}`,
+      method: "query",
+      record: undefined,
+      success: true,
+      error: undefined,
+    };
+    expect(actual).toEqual(expected);
+  });
+
+  it("should not throw if api returns status 500 when listing companies", async () => {
+    const svcClientConfig: IPlanhatClientConfig = {
+      accessToken: "yp42nhyhAKFLUSg5y4u0w==",
+      apiPrefix: "api",
+      tenantId: "py3h8hbrn",
+    };
+
+    const limit = 100;
+    const offset = 0;
+
+    nock("https://api.planhat.com")
+      .matchHeader("authorization", `Bearer ${svcClientConfig.accessToken}`)
+      .get(`/companies?limit=${limit}&offset=${offset}`)
+      .replyWithError("Some arbitrary error");
+
+    const svcClient = new PlanhatClient(svcClientConfig);
+    const actual = await svcClient.listCompanies(offset, limit);
+    const expected: IApiResultObject<IPlanhatCompany> = {
+      data: undefined,
+      endpoint: `https://api.planhat.com/companies?limit=${limit}&offset=${offset}`,
+      method: "query",
+      record: undefined,
+      success: false,
+      error: ["Some arbitrary error"],
+    };
+    expect(actual).toEqual(expected);
+  });
+
+  it("should list endusers", async () => {
+    const svcClientConfig: IPlanhatClientConfig = {
+      accessToken: "yp42nhyhAKFLUSg5y4u0w==",
+      apiPrefix: "api",
+      tenantId: "py3h8hbrn",
+    };
+
+    const limit = 100;
+    const offset = 0;
+
+    nock("https://api.planhat.com")
+      .matchHeader("authorization", `Bearer ${svcClientConfig.accessToken}`)
+      .get(`/endusers?limit=${limit}&offset=${offset}`)
+      .reply(200, PlanhatEndusersListResponseData, {
+        "Content-Type": "application/json",
+      });
+
+    const svcClient = new PlanhatClient(svcClientConfig);
+    const actual = await svcClient.listEndusers(offset, limit);
+    const expected: IApiResultObject<IPlanhatContact> = {
+      data: PlanhatEndusersListResponseData,
+      endpoint: `https://api.planhat.com/endusers?limit=${limit}&offset=${offset}`,
+      method: "query",
+      record: undefined,
+      success: true,
+      error: undefined,
+    };
+    expect(actual).toEqual(expected);
+  });
+
+  it("should not throw if api returns status 500 when listing endusers", async () => {
+    const svcClientConfig: IPlanhatClientConfig = {
+      accessToken: "yp42nhyhAKFLUSg5y4u0w==",
+      apiPrefix: "api",
+      tenantId: "py3h8hbrn",
+    };
+
+    const limit = 100;
+    const offset = 0;
+
+    nock("https://api.planhat.com")
+      .matchHeader("authorization", `Bearer ${svcClientConfig.accessToken}`)
+      .get(`/endusers?limit=${limit}&offset=${offset}`)
+      .replyWithError("Some arbitrary error");
+
+    const svcClient = new PlanhatClient(svcClientConfig);
+    const actual = await svcClient.listEndusers(offset, limit);
+    const expected: IApiResultObject<IPlanhatContact> = {
+      data: undefined,
+      endpoint: `https://api.planhat.com/endusers?limit=${limit}&offset=${offset}`,
+      method: "query",
       record: undefined,
       success: false,
       error: ["Some arbitrary error"],
