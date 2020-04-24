@@ -602,7 +602,9 @@ class SyncAgent {
       });
     }
 
-    await this._hullClient.put(`${this._connector.id}/status`, status);
+    if (!_.isNil(this._hullClient)) {
+      await this._hullClient.put(`${this._connector.id}/status`, status);
+    }
 
     return Promise.resolve(status);
   }

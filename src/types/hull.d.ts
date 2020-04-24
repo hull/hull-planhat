@@ -1,3 +1,5 @@
+/* eslint-disable max-classes-per-file, @typescript-eslint/no-explicit-any */
+
 declare module "hull" {
   import { Logger, loggers } from "winston";
   import { Application } from "express";
@@ -5,7 +7,6 @@ declare module "hull" {
   const logger: Logger;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   class Connector {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     constructor(config: any);
 
     public setupApp(app: Application): void;
@@ -13,3 +14,5 @@ declare module "hull" {
     public startApp(app: Application): void;
   }
 }
+
+/* eslint-enable max-classes-per-file, @typescript-eslint/no-explicit-any */
