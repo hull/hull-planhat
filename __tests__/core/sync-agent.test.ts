@@ -1,6 +1,7 @@
 import nock from "nock";
 import _ from "lodash";
-import { AwilixContainer, createContainer } from "awilix";
+import { AwilixContainer, createContainer, asClass, asValue } from "awilix";
+import { DateTime } from "luxon";
 import { ContextMock } from "../_helpers/mocks";
 import SyncAgent from "../../src/core/sync-agent";
 import { ConnectorStatusResponse } from "../../src/types/connector-status";
@@ -333,6 +334,166 @@ describe("SyncAgent", () => {
       };
       const actual = await syncAgent.determineConnectorStatus();
       expect(actual).toEqual(expected);
+    });
+  });
+
+  describe("fetch accounts", () => {
+    const basePayload = _.cloneDeep(
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      require("../_data/user-update-message.json"),
+    );
+
+    it("should return immediately if the connector cannot communicate with the API", async () => {
+      _.unset(basePayload, "connector.private_settings.personal_acccess_token");
+
+      ctxMock.connector = basePayload.connector;
+      ctxMock.ship = basePayload.connector;
+
+      const syncAgent = new SyncAgent(
+        ctxMock.client,
+        ctxMock.connector,
+        ctxMock.metric,
+        container,
+      );
+      const actual = await syncAgent.fetchIncoming("companies");
+
+      expect(actual).toBeFalsy();
+    });
+
+    it("should return immediately if the connector is currently processing a job", async () => {
+      const objectType = "companies";
+      const mockGet = jest.fn();
+      mockGet.mockImplementation(async (key: string) => {
+        const pageCount = 100;
+        const iniTimestamp = new DateTime().toUTC().toISO();
+        let result;
+        switch (key) {
+          case `${objectType}_${basePayload.connector.id}_currentjob`:
+            result = {
+              objectType,
+              endDate: undefined,
+              lastActivity: iniTimestamp,
+              startDate: iniTimestamp,
+              offset: 0,
+              limit: pageCount,
+              filterStart: DateTime.fromISO("1970-01-01T00:00:00.000Z")
+                .toUTC()
+                .toISO(),
+              totalRecords: 0,
+              importedRecords: 0,
+            };
+            break;
+          default:
+            result = undefined;
+            break;
+        }
+
+        return Promise.resolve(result);
+      });
+      const mockRedisClient = jest.fn().mockImplementation(() => {
+        return {
+          get: mockGet,
+        };
+      });
+
+      container.register({
+        redisClient: asClass(mockRedisClient),
+      });
+
+      ctxMock.connector = basePayload.connector;
+      ctxMock.ship = basePayload.connector;
+
+      const syncAgent = new SyncAgent(
+        ctxMock.client,
+        ctxMock.connector,
+        ctxMock.metric,
+        container,
+      );
+      const actual = await syncAgent.fetchIncoming("companies");
+
+      expect(actual).toBeFalsy();
+    });
+
+    const incomingAccountScenarios = ["fetch-companies-success"];
+    _.forEach(incomingAccountScenarios, scenarioName => {
+      it(`should handle scenario '${scenarioName}'`, async () => {
+        const payloadSetupFn: () => any = require(`../_scenarios/${scenarioName}/smart-notifier-payload`)
+          .default;
+
+        const mockGet = jest.fn(async (key: string) => {
+          // eslint-disable-next-line no-console
+          console.log(`Accessing Redis with key '${key}'`);
+          return Promise.resolve(undefined);
+        });
+        const mockSet = jest.fn(async (key: string, data: any) => {
+          // eslint-disable-next-line no-console
+          console.log(`Setting data in Redis with key '${key}'`);
+          return Promise.resolve(JSON.stringify(data));
+        });
+        const mockDel = jest.fn(async (key: string) => {
+          // eslint-disable-next-line no-console
+          console.log(`Deleting from Redis with key '${key}'`);
+          return Promise.resolve(1);
+        });
+
+        const MockRedisClient = jest.fn().mockImplementation(() => {
+          return {
+            get: mockGet,
+            set: mockSet,
+            delete: mockDel,
+          };
+        });
+
+        container.register({
+          redisClient: asValue(new MockRedisClient()),
+        });
+        const smartNotifierPayload = payloadSetupFn();
+
+        ctxMock.connector = smartNotifierPayload.connector;
+        ctxMock.ship = smartNotifierPayload.connector;
+
+        const syncAgent = new SyncAgent(
+          ctxMock.client,
+          ctxMock.connector,
+          ctxMock.metric,
+          container,
+        );
+
+        const apiResponseSetupFn: (
+          nock: any,
+        ) => void = require(`../_scenarios/${scenarioName}/api-responses`)
+          .default;
+        apiResponseSetupFn(nock);
+
+        await syncAgent.fetchIncoming("companies");
+        const ctxExpectationsFn: (
+          ctx: ContextMock,
+        ) => void = require(`../_scenarios/${scenarioName}/ctx-expectations`)
+          .default;
+        ctxExpectationsFn(ctxMock);
+        expect(nock.isDone()).toBe(true);
+
+        // Get current and last job
+        expect(
+          (container.resolve("redisClient") as any).get.mock.calls.length,
+        ).toEqual(2);
+
+        expect(
+          (container.resolve("redisClient") as any).get.mock.calls[0],
+        ).toEqual([`companies_${ctxMock.connector.id}_currentjob`]);
+
+        expect(
+          (container.resolve("redisClient") as any).get.mock.calls[1],
+        ).toEqual([`companies_${ctxMock.connector.id}_lastjob`]);
+
+        expect(
+          (container.resolve("redisClient") as any).set.mock.calls.length,
+        ).toEqual(3); // Current job start + Current job progress + Last job (after finish)
+
+        expect(
+          (container.resolve("redisClient") as any).delete.mock.calls.length,
+        ).toEqual(1);
+      });
     });
   });
 });

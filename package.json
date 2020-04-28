@@ -82,6 +82,7 @@
     "@types/express": "^4.17.3",
     "@types/jest": "^24.9.1",
     "@types/lodash": "^4.14.149",
+    "@types/luxon": "^1.22.0",
     "@types/nock": "^10.0.3",
     "@types/node": "^12.12.30",
     "@types/redis": "^2.8.17",

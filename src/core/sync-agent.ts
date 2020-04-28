@@ -1,5 +1,6 @@
 import _ from "lodash";
 import { AwilixContainer } from "awilix";
+import { DateTime } from "luxon";
 import IHullClient from "../types/hull-client";
 import FilterUtil from "../utils/filter-util";
 import MappingUtil from "../utils/mapping-util";
@@ -14,6 +15,8 @@ import {
   PlanhatLicense,
   BulkUpsertResponse,
   PlanhatUser,
+  IncomingFetchJob,
+  PlanhatObjectTypeIncoming,
 } from "./planhat-objects";
 import PlanhatClient from "./planhat-client";
 import IPlanhatClientConfig from "../types/planhat-client-config";
@@ -609,6 +612,110 @@ class SyncAgent {
     return Promise.resolve(status);
   }
 
+  public async fetchIncoming(
+    objectType: PlanhatObjectTypeIncoming,
+  ): Promise<boolean> {
+    if (!this.canCommunicateWithApi()) {
+      return Promise.resolve(false);
+    }
+
+    const pageCount = 100;
+    let currentJob = await this.getCurrentJob(objectType);
+
+    const nowInitial = DateTime.utc();
+
+    if (currentJob === undefined) {
+      // new job to be spun up
+      const iniTimestamp = DateTime.utc().toISO();
+      const lastJob = await this.getLastJob(objectType);
+      currentJob = {
+        objectType,
+        endDate: undefined,
+        lastActivity: iniTimestamp,
+        startDate: iniTimestamp,
+        offset: 0,
+        limit: pageCount,
+        filterStart: lastJob
+          ? lastJob.startDate
+          : DateTime.fromISO("1970-01-01T00:00:00.000Z").toISO(),
+        totalRecords: 0,
+        importedRecords: 0,
+      };
+    } else if (
+      nowInitial.diff(DateTime.fromISO(currentJob.lastActivity), "minutes")
+        .minutes < 5
+    ) {
+      // active job, so leave the function
+      return Promise.resolve(false);
+    } else {
+      // resume the job, but log new activity
+      currentJob.lastActivity = DateTime.utc().toISO();
+    }
+
+    // Update the current job, to lock out all other parallel processing
+    await this.upsertCurrentJob(objectType, _.cloneDeep(currentJob));
+
+    if (currentJob.offset === 0) {
+      // Log out the start of a job
+      this._hullClient.logger.info(
+        "incoming.job.start",
+        _.cloneDeep(currentJob),
+      );
+    } else {
+      // TODO: Check if we want to log it out to the user or not
+      this._hullClient.logger.debug(
+        "incoming.job.resume",
+        _.cloneDeep(currentJob),
+      );
+    }
+
+    if (objectType === "companies") {
+      let fetchedCompanies = [];
+      while (fetchedCompanies.length === pageCount || currentJob.offset === 0) {
+        this._hullClient.logger.info(
+          "incoming.job.progress",
+          _.cloneDeep(currentJob),
+        );
+        // eslint-disable-next-line no-await-in-loop
+        const apiResult: ApiResultObject<IPlanhatCompany> = await this._serviceClient.listCompanies(
+          currentJob.offset,
+          pageCount,
+        );
+        fetchedCompanies = apiResult.data;
+
+        // Note: We cannot filter companies which have been changed since filterStart,
+        // because the Planhat API doesn't have an updatedAt for companies
+
+        // Import companies to Hull
+        // eslint-disable-next-line no-await-in-loop
+        await this.handleIncomingAccounts(fetchedCompanies);
+
+        currentJob.offset += pageCount;
+        currentJob.totalRecords += fetchedCompanies.length;
+        currentJob.importedRecords += fetchedCompanies.length;
+
+        // Update the current job
+        // eslint-disable-next-line no-await-in-loop
+        await this.upsertCurrentJob(objectType, _.cloneDeep(currentJob));
+      }
+    } else if (objectType === "endusers") {
+      // eslint-disable-next-line prefer-const
+      let fetchedUsers = [];
+      while (fetchedUsers.length === pageCount || currentJob.offset === 0) {
+        this._hullClient.logger.info("incoming.job.progress", currentJob);
+      }
+    }
+
+    // Upsert the last job and delete the current one
+    currentJob.endDate = DateTime.utc().toISO();
+    await this.upsertLastJob(objectType, _.cloneDeep(currentJob));
+    await this.deleteCurrentJob(objectType);
+    // Log out job completion
+    this._hullClient.logger.info("incoming.job.success", currentJob);
+
+    return Promise.resolve(true);
+  }
+
   /**
    * Checks whether the connector can communicate with the API or not
    *
@@ -726,6 +833,132 @@ class SyncAgent {
     }
 
     return result;
+  }
+
+  private async getLastJob(
+    objectType: PlanhatObjectTypeIncoming,
+  ): Promise<IncomingFetchJob | undefined> {
+    const redisClnt = this.diContainer.resolve(
+      "redisClient",
+    ) as ConnectorRedisClient;
+    const connectorId = this._connector.id;
+    const cacheKey = `${objectType}_${connectorId}_lastjob`;
+
+    const jobInfo = await redisClnt.get<string>(cacheKey);
+
+    if (_.isNil(jobInfo)) {
+      return undefined;
+    }
+
+    return JSON.parse(jobInfo) as IncomingFetchJob;
+  }
+
+  private async getCurrentJob(
+    objectType: PlanhatObjectTypeIncoming,
+  ): Promise<IncomingFetchJob | undefined> {
+    const redisClnt = this.diContainer.resolve(
+      "redisClient",
+    ) as ConnectorRedisClient;
+    const connectorId = this._connector.id;
+    const cacheKey = `${objectType}_${connectorId}_currentjob`;
+
+    const jobInfo = await redisClnt.get<string>(cacheKey);
+
+    if (_.isNil(jobInfo)) {
+      return undefined;
+    }
+
+    return JSON.parse(jobInfo) as IncomingFetchJob;
+  }
+
+  private async upsertLastJob(
+    objectType: PlanhatObjectTypeIncoming,
+    jobInfo: IncomingFetchJob,
+  ): Promise<string> {
+    const redisClnt = this.diContainer.resolve(
+      "redisClient",
+    ) as ConnectorRedisClient;
+    const connectorId = this._connector.id;
+    const cacheKey = `${objectType}_${connectorId}_lastjob`;
+
+    const redisResult = await redisClnt.set(cacheKey, JSON.stringify(jobInfo));
+
+    // eslint-disable-next-line no-console
+    console.log(redisResult);
+
+    return redisResult;
+  }
+
+  private async upsertCurrentJob(
+    objectType: PlanhatObjectTypeIncoming,
+    jobInfo: IncomingFetchJob,
+  ): Promise<string> {
+    const redisClnt = this.diContainer.resolve(
+      "redisClient",
+    ) as ConnectorRedisClient;
+    const connectorId = this._connector.id;
+    const cacheKey = `${objectType}_${connectorId}_currentjob`;
+
+    const redisResult = await redisClnt.set(cacheKey, JSON.stringify(jobInfo));
+
+    // eslint-disable-next-line no-console
+    console.log(redisResult);
+
+    return redisResult;
+  }
+
+  private async deleteCurrentJob(
+    objectType: PlanhatObjectTypeIncoming,
+  ): Promise<number> {
+    const redisClnt = this.diContainer.resolve(
+      "redisClient",
+    ) as ConnectorRedisClient;
+    const connectorId = this._connector.id;
+    const cacheKey = `${objectType}_${connectorId}_currentjob`;
+
+    const redisResult = await redisClnt.delete(cacheKey);
+
+    // eslint-disable-next-line no-console
+    console.log(redisResult);
+
+    return redisResult;
+  }
+
+  private async handleIncomingAccounts(
+    data: IPlanhatCompany[],
+  ): Promise<unknown> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const promises: Promise<any>[] = [];
+
+    _.forEach(data, d => {
+      const accountIdent = {
+        anonymous_id: `planhat:${d._id}`,
+      };
+      if (d.externalId) {
+        _.set(accountIdent, "external_id", d.externalId);
+      }
+
+      if (d.domains && d.domains.length === 1) {
+        _.set(accountIdent, "domain", _.first(d.domains));
+      }
+      const accountAttributes = this._mappingUtil.mapPlanhatCompanyToAccountAttributes(
+        d,
+      );
+
+      promises.push(
+        this._hullClient
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .asAccount(accountIdent as any)
+          .traits(accountAttributes),
+      );
+
+      this._hullClient
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .asAccount(accountIdent as any)
+        .logger.info("incoming.account.success", { data: d });
+    });
+
+    return Promise.all(promises);
   }
 }
 

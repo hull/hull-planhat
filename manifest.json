@@ -222,6 +222,22 @@
         },
         "required": ["hull_field_name", "service_field_name"]
       }
+    },
+    {
+      "name": "fetch_interval_accounts",
+      "title": "Fetch Interval for Companies (in minutes)",
+      "type": "string",
+      "format": "hidden",
+      "default": "180",
+      "enum": ["30", "60", "180", "360", "720", "1440", "43800"]
+    },
+    {
+      "name": "fetch_interval_users",
+      "title": "Fetch Interval for Endusers (in minutes)",
+      "type": "string",
+      "format": "hidden",
+      "default": "180",
+      "enum": ["30", "60", "180", "360", "720", "1440", "43800"]
     }
   ],
   "schedules": [
@@ -229,6 +245,12 @@
       "url": "/status",
       "type": "interval",
       "value": "30"
+    },
+    {
+      "url": "/fetch/accounts",
+      "type": "interval",
+      "value_from": "private_settings.fetch_interval_accounts",
+      "default": "180"
     }
   ],
   "subscriptions": [

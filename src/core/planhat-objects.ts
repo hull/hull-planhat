@@ -109,3 +109,17 @@ export interface BulkUpsertResponse {
 export interface BulkUpsertKey {
   _id: string;
 }
+
+export type PlanhatObjectTypeIncoming = "endusers" | "companies";
+
+export interface IncomingFetchJob {
+  objectType: "endusers" | "companies";
+  startDate: string;
+  endDate: string | undefined;
+  offset: number;
+  limit: number;
+  lastActivity: string;
+  filterStart: string;
+  totalRecords: number;
+  importedRecords: number;
+}
