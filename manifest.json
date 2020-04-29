@@ -10,7 +10,7 @@
   "description": "Synchronize Hull accounts with Planhat and forward user events.",
   "readme": "readme.md",
   "tabs": [],
-  "version": "0.1.6",
+  "version": "0.1.7-beta",
   "source": "planhat",
   "logo": "logo.png",
   "ui": false,
@@ -227,9 +227,8 @@
       "name": "fetch_interval_accounts",
       "title": "Fetch Interval for Companies (in minutes)",
       "type": "string",
-      "format": "hidden",
       "default": "180",
-      "enum": ["30", "60", "180", "360", "720", "1440", "43800"]
+      "enum": ["180", "360", "720", "1440"]
     },
     {
       "name": "fetch_interval_users",
@@ -237,7 +236,7 @@
       "type": "string",
       "format": "hidden",
       "default": "180",
-      "enum": ["30", "60", "180", "360", "720", "1440", "43800"]
+      "enum": ["180", "360", "720", "1440"]
     }
   ],
   "schedules": [
@@ -289,6 +288,11 @@
         "private_settings.account_licenses_attributes_outbound",
         "private_settings.account_licenses_custom_attributes_outbound"
       ]
+    },
+    {
+      "title": "Account Incoming Setup",
+      "description": "How we fetch Planhat Companies as Hull Accounts",
+      "properties": ["private_settings.fetch_interval_accounts"]
     }
   ]
 }
