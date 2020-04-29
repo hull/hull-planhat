@@ -902,7 +902,10 @@ class SyncAgent {
 
     const jobInfo = await redisClnt.get<string>(cacheKey);
 
-    if (_.isNil(jobInfo)) {
+    // eslint-disable-next-line no-console
+    console.log(">>> Last Job Info", jobInfo);
+
+    if (_.isNil(jobInfo) || jobInfo === undefined) {
       return undefined;
     }
 
