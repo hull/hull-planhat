@@ -1,4 +1,5 @@
 import _ from "lodash";
+import { DateTime } from "luxon";
 import PrivateSettings from "../types/private-settings";
 import IHullUserUpdateMessage from "../types/user-update-message";
 import IHullUserEvent from "../types/user-event";
@@ -235,6 +236,15 @@ class FilterUtil {
       this.planhatUsers.pop();
     }
     this.planhatUsers.push(...users);
+  }
+
+  public static filterIncomingContactsUpdated(
+    contacts: Array<IPlanhatContact>,
+    since: DateTime,
+  ): Array<IPlanhatContact> {
+    return _.filter(contacts, c => {
+      return DateTime.fromISO(c.updatedAt) >= since;
+    });
   }
 }
 

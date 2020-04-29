@@ -1,4 +1,5 @@
 import _ from "lodash";
+import { DateTime, Duration } from "luxon";
 import FilterUtil from "../../src/utils/filter-util";
 import userUpdateMessage from "../_data/user-update-message.json";
 import accountUpdateMessage from "../_data/account-update-message.json";
@@ -11,6 +12,7 @@ import {
 } from "../../src/core/planhat-objects";
 import IHullAccount from "../../src/types/account";
 import IHullUserEvent from "../../src/types/user-event";
+import PlanhatEndusersListResponseData from "../_data/planhat-endusers.json";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 describe("FilterUtil", () => {
@@ -561,6 +563,24 @@ describe("FilterUtil", () => {
     const expected = [_.first(_.cloneDeep(events))];
     const actual = util.filterEvents(events);
     expect(actual).toEqual(expected);
+  });
+
+  describe("filter endusers updated since", () => {
+    it("should pass through all users which are updated after or equal to since", () => {
+      const contacts: IPlanhatContact[] = PlanhatEndusersListResponseData;
+      const since = DateTime.fromISO(contacts[0].updatedAt);
+      const actual = FilterUtil.filterIncomingContactsUpdated(contacts, since);
+      expect(actual).toEqual(contacts);
+    });
+
+    it("should omit all users which are updated before the since timestamp", () => {
+      const contacts: IPlanhatContact[] = PlanhatEndusersListResponseData;
+      const since = DateTime.fromISO(contacts[0].updatedAt).plus(
+        Duration.fromObject({ seconds: 1 }),
+      );
+      const actual = FilterUtil.filterIncomingContactsUpdated(contacts, since);
+      expect(actual).toHaveLength(0);
+    });
   });
 });
 
