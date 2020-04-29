@@ -248,14 +248,12 @@
     {
       "url": "/fetch/accounts",
       "type": "interval",
-      "value_from": "private_settings.fetch_interval_accounts",
-      "default": "180"
+      "value": "5"
     },
     {
       "url": "/fetch/users",
       "type": "interval",
-      "value_from": "private_settings.fetch_interval_users",
-      "default": "180"
+      "value": "5"
     }
   ],
   "subscriptions": [

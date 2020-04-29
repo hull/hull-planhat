@@ -19,4 +19,6 @@ export default interface PrivateSettings {
   account_licenses_attribute?: string;
   account_licenses_attributes_outbound?: MappingEntry[];
   account_licenses_custom_attributes_outbound?: MappingEntry[];
+  fetch_interval_accounts?: string;
+  fetch_interval_users?: string;
 }

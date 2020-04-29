@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { AwilixContainer } from "awilix";
-import { DateTime } from "luxon";
+import { DateTime, Duration } from "luxon";
 import IHullClient from "../types/hull-client";
 import FilterUtil from "../utils/filter-util";
 import MappingUtil from "../utils/mapping-util";
@@ -621,13 +621,43 @@ class SyncAgent {
 
     const pageCount = 100;
     let currentJob = await this.getCurrentJob(objectType);
+    const lastJob = await this.getLastJob(objectType);
+
+    let intervalStr = "180";
+    switch (objectType) {
+      case "companies":
+        if (this._privateSettings.fetch_interval_accounts) {
+          intervalStr = this._privateSettings.fetch_interval_accounts;
+        }
+        break;
+      default:
+        if (this._privateSettings.fetch_interval_users) {
+          intervalStr = this._privateSettings.fetch_interval_users;
+        }
+        break;
+    }
+
+    if (
+      lastJob &&
+      DateTime.fromISO(lastJob.startDate).plus(
+        Duration.fromObject({ minutes: parseInt(intervalStr, 10) }),
+      ) > DateTime.utc()
+    ) {
+      this._hullClient.logger.debug("incoming.job.skip", {
+        reason:
+          "Interval between last job and now is less than configured threshold",
+        lastJob,
+        intervalStr,
+        objectType,
+      });
+      return Promise.resolve(false);
+    }
 
     const nowInitial = DateTime.utc();
 
     if (currentJob === undefined) {
       // new job to be spun up
       const iniTimestamp = DateTime.utc().toISO();
-      const lastJob = await this.getLastJob(objectType);
       currentJob = {
         objectType,
         endDate: undefined,
