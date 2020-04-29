@@ -14,13 +14,14 @@ export const accountFetchFactory = (
       await syncAgent.fetchIncoming("companies");
       return Promise.resolve(true);
     } catch (error) {
-      res
-        .status(500)
-        .send({
-          ok: false,
-          message: "Unknown error",
-          error: { message: error.message },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((req as any).hull && (req as any).hull.client) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (req as any).hull.client.logger.error("incoming.job.error", {
+          error,
+          objectType: "companies",
         });
+      }
       return Promise.resolve(false);
     }
   };
