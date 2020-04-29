@@ -493,6 +493,102 @@ describe("SyncAgent", () => {
         expect(
           (container.resolve("redisClient") as any).delete.mock.calls.length,
         ).toEqual(1);
+
+        expect(
+          (container.resolve("redisClient") as any).delete.mock.calls[0],
+        ).toEqual([`companies_${ctxMock.connector.id}_currentjob`]);
+      });
+    });
+  });
+
+  describe("fetch users", () => {
+    /* const basePayload = _.cloneDeep(
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      require("../_data/user-update-message.json"),
+    ); */
+    const incomingUserScenarios = ["fetch-endusers-success"];
+    _.forEach(incomingUserScenarios, scenarioName => {
+      it(`should handle scenario '${scenarioName}'`, async () => {
+        const payloadSetupFn: () => any = require(`../_scenarios/${scenarioName}/smart-notifier-payload`)
+          .default;
+
+        const mockGet = jest.fn(async (key: string) => {
+          // eslint-disable-next-line no-console
+          console.log(`Accessing Redis with key '${key}'`);
+          return Promise.resolve(undefined);
+        });
+        const mockSet = jest.fn(async (key: string, data: any) => {
+          // eslint-disable-next-line no-console
+          console.log(`Setting data in Redis with key '${key}'`);
+          return Promise.resolve(JSON.stringify(data));
+        });
+        const mockDel = jest.fn(async (key: string) => {
+          // eslint-disable-next-line no-console
+          console.log(`Deleting from Redis with key '${key}'`);
+          return Promise.resolve(1);
+        });
+
+        const MockRedisClient = jest.fn().mockImplementation(() => {
+          return {
+            get: mockGet,
+            set: mockSet,
+            delete: mockDel,
+          };
+        });
+
+        container.register({
+          redisClient: asValue(new MockRedisClient()),
+        });
+        const smartNotifierPayload = payloadSetupFn();
+
+        ctxMock.connector = smartNotifierPayload.connector;
+        ctxMock.ship = smartNotifierPayload.connector;
+
+        const syncAgent = new SyncAgent(
+          ctxMock.client,
+          ctxMock.connector,
+          ctxMock.metric,
+          container,
+        );
+
+        const apiResponseSetupFn: (
+          nock: any,
+        ) => void = require(`../_scenarios/${scenarioName}/api-responses`)
+          .default;
+        apiResponseSetupFn(nock);
+
+        await syncAgent.fetchIncoming("endusers");
+        const ctxExpectationsFn: (
+          ctx: ContextMock,
+        ) => void = require(`../_scenarios/${scenarioName}/ctx-expectations`)
+          .default;
+        ctxExpectationsFn(ctxMock);
+        expect(nock.isDone()).toBe(true);
+
+        // Get current and last job
+        expect(
+          (container.resolve("redisClient") as any).get.mock.calls.length,
+        ).toEqual(2);
+
+        expect(
+          (container.resolve("redisClient") as any).get.mock.calls[0],
+        ).toEqual([`endusers_${ctxMock.connector.id}_currentjob`]);
+
+        expect(
+          (container.resolve("redisClient") as any).get.mock.calls[1],
+        ).toEqual([`endusers_${ctxMock.connector.id}_lastjob`]);
+
+        expect(
+          (container.resolve("redisClient") as any).set.mock.calls.length,
+        ).toEqual(3); // Current job start + Current job progress + Last job (after finish)
+
+        expect(
+          (container.resolve("redisClient") as any).delete.mock.calls.length,
+        ).toEqual(1);
+
+        expect(
+          (container.resolve("redisClient") as any).delete.mock.calls[0],
+        ).toEqual([`endusers_${ctxMock.connector.id}_currentjob`]);
       });
     });
   });

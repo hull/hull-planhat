@@ -36,8 +36,8 @@
     },
     {
       "name": "contact_synchronized_segments",
-      "title": "Contact Filter",
-      "description": "Send users and events as contacts and events when they belong to one of these segments to Planhat. Only users in the specified segments are sent.",
+      "title": "Endusers Filter",
+      "description": "Send users and events as endusers and events when they belong to one of these segments to Planhat. Only users in the specified segments are sent.",
       "type": "array",
       "format": "segment",
       "default": []
@@ -45,7 +45,7 @@
     {
       "name": "contact_events",
       "title": "Tracking Filter",
-      "description": "Send these event as end-user activity to Planhat. If no events are whitelisted, no event data will be sent but user attributes are still being synchronized to Planhat Contacts.",
+      "description": "Send these event as end-user activity to Planhat. If no events are whitelisted, no event data will be sent but user attributes are still being synchronized to Planhat Endusers.",
       "format": "event",
       "type": "array",
       "default": []
@@ -250,6 +250,12 @@
       "type": "interval",
       "value_from": "private_settings.fetch_interval_accounts",
       "default": "180"
+    },
+    {
+      "url": "/fetch/users",
+      "type": "interval",
+      "value_from": "private_settings.fetch_interval_users",
+      "default": "180"
     }
   ],
   "subscriptions": [
@@ -269,13 +275,18 @@
     },
     {
       "title": "User Outgoing Setup",
-      "description": "How we send Users and Events as Planhat Contacts and Events",
+      "description": "How we send Users and Events as Planhat Endusers and Events",
       "properties": [
         "private_settings.contact_synchronized_segments",
         "private_settings.contact_attributes_outbound",
         "private_settings.contact_custom_attributes_outbound",
         "private_settings.contact_events"
       ]
+    },
+    {
+      "title": "User Incoming Setup",
+      "description": "How we fetch Planhat Endusers as Hull Users",
+      "properties": ["private_settings.fetch_interval_users"]
     },
     {
       "title": "Account Outgoing Setup",

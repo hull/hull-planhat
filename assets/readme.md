@@ -18,17 +18,17 @@ This document was last updated on August 29, 2019. If you want to help us improv
 
 ### User data from Hull to Contacts in Planhat
 
-You can synchronize user attributes from Hull with Planhat contacts by specifying one or more user segments in the `Contact Filter` and making the required mappings under `User attributes mapping`:
+You can synchronize user attributes from Hull with Planhat contacts by specifying one or more user segments in the `Endusers Filter` and making the required mappings under `User attributes mapping`:
 ![Configure outgoing user data](./docs/outgoing_data_01.png)
 
 _Note_: The segments cannot have the event as a condition, because evaluation takes place after the event occured. So the connector won't recognize that the user is in the segment. We recommend to use a generic segment, e.g. users with external_ids which ensures that users will be in the segment before the event is registered.
 
 The connector will check the conditions in the following order:
 
-1. Check if the user is in one of the segments listed under `Contact Filter`
+1. Check if the user is in one of the segments listed under `Endusers Filter`
 2. Check if a new event occured which is in the `Tracking Filter`
 
-The connector will send events with the `action` set to name of the event in Hull and all properties passed as `info` parameter to the Planhat API. If present, the name, email and external_id of the Hull user will be send along to attribute the event to the appropriate contact in Planhat.
+The connector will send events with the `action` set to name of the event in Hull and all properties passed as `info` parameter to the Planhat API. If present, the name, email and external_id of the Hull user will be send along to attribute the event to the appropriate Enduser in Planhat.
 
 ### Account data from Hull to Companies in Planhat
 
@@ -39,7 +39,7 @@ Only accounts with an `external_id` in Hull can be synchronized to Planhat to en
 
 If you want the connector to assign `Owner` and `Co-Owner` in Planhat, you need to specify an attribute which has the value of the Planhat ID of the User who should be the owner or co-owner. If you send an invalid value, the payload will be rejected by the connector and no API call to Planhat will be executed; the connector will log an `outgoing.account.skip` message in this case with a reason of `Invalid Owner ID` or `Invalid Co-Owner ID`. _This feature is available since version 0.1.5_
 
-_Note_: The account must be in one of the whitelisted segments. The connector won't synchronize a linked account based on the fact that the user matches a whitlisted segment in the `Contact Filter`.
+_Note_: The account must be in one of the whitelisted segments. The connector won't synchronize a linked account based on the fact that the user matches a whitlisted segment in the `Endusers Filter`.
 
 #### Synchronization of Licenses
 

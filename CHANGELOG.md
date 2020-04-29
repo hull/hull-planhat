@@ -5,7 +5,9 @@
 - [bugfix] Exclude field `createDate` from update detection in `PatchUtil`
 - [feature] Add status endpoint for Hull platform
 - [feature] Add interval-based fetching of Planhat companies into Hull accounts
+- [feature] Add interval-based fetching of Planhat endusers into Hull users
 - [maintenance] Update manifest defaults to reflect latest mapping strategy
+- [maintenance] Update documentation to reflect changes
 
 ## Version 0.1.6 [BETA]
 

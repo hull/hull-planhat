@@ -78,6 +78,12 @@ const server = (app: Application): Application => {
     actions.fetchAccounts(container),
   );
 
+  app.use(
+    "/fetch/users",
+    redisMiddlewareFactory(container),
+    actions.fetchUsers(container),
+  );
+
   // Status endpoint
   app.use(
     "/status",

@@ -4,6 +4,7 @@ import fieldsSchema from "./schema-fields";
 import { listUsers, getUserById, createUser, updateUser } from "./api-users";
 import { statusActionFactory } from "./status";
 import { accountFetchFactory } from "./account-fetch";
+import { userFetchFactory } from "./user-fetch";
 
 // eslint-disable-next-line import/no-default-export
 export default {
@@ -16,4 +17,5 @@ export default {
   updateUser,
   status: statusActionFactory,
   fetchAccounts: accountFetchFactory,
+  fetchUsers: userFetchFactory,
 };

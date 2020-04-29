@@ -699,10 +699,36 @@ class SyncAgent {
         await this.upsertCurrentJob(objectType, _.cloneDeep(currentJob));
       }
     } else if (objectType === "endusers") {
-      // eslint-disable-next-line prefer-const
-      let fetchedUsers = [];
+      let fetchedUsers: IPlanhatContact[] = [];
       while (fetchedUsers.length === pageCount || currentJob.offset === 0) {
-        this._hullClient.logger.info("incoming.job.progress", currentJob);
+        this._hullClient.logger.info(
+          "incoming.job.progress",
+          _.cloneDeep(currentJob),
+        );
+
+        // eslint-disable-next-line no-await-in-loop
+        const apiResult: ApiResultObject<IPlanhatContact> = await this._serviceClient.listEndusers(
+          currentJob.offset,
+          pageCount,
+        );
+        fetchedUsers = apiResult.data;
+
+        const filteredUsers = FilterUtil.filterIncomingContactsUpdated(
+          fetchedUsers,
+          DateTime.fromISO(currentJob.filterStart),
+        );
+
+        // Import Endusers as Users into Hull
+        // eslint-disable-next-line no-await-in-loop
+        await this.handleIncomingUsers(filteredUsers);
+
+        currentJob.offset += pageCount;
+        currentJob.totalRecords += fetchedUsers.length;
+        currentJob.importedRecords += filteredUsers.length;
+
+        // Update the current job
+        // eslint-disable-next-line no-await-in-loop
+        await this.upsertCurrentJob(objectType, _.cloneDeep(currentJob));
       }
     }
 
@@ -956,6 +982,41 @@ class SyncAgent {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .asAccount(accountIdent as any)
         .logger.info("incoming.account.success", { data: d });
+    });
+
+    return Promise.all(promises);
+  }
+
+  private async handleIncomingUsers(data: IPlanhatContact[]): Promise<unknown> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const promises: Promise<any>[] = [];
+
+    _.forEach(data, d => {
+      const userIdent = {
+        anonymous_id: `planhat:${d._id}`,
+      };
+      if (d.externalId) {
+        _.set(userIdent, "external_id", d.externalId);
+      }
+
+      if (d.email) {
+        _.set(userIdent, "email", d.email);
+      }
+      const userAttributes = this._mappingUtil.mapPlanhatContactToUserAttributes(
+        d,
+      );
+
+      promises.push(
+        this._hullClient
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .asUser(userIdent as any)
+          .traits(userAttributes),
+      );
+
+      this._hullClient
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .asAccount(userIdent as any)
+        .logger.info("incoming.user.success", { data: d });
     });
 
     return Promise.all(promises);
