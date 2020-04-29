@@ -903,13 +903,17 @@ class SyncAgent {
     const jobInfo = await redisClnt.get<string>(cacheKey);
 
     // eslint-disable-next-line no-console
-    console.log(">>> Last Job Info", jobInfo);
+    console.log(">>> Last Job Info", jobInfo, typeof jobInfo);
 
     if (_.isNil(jobInfo) || jobInfo === undefined) {
       return undefined;
     }
 
-    return JSON.parse(jobInfo) as IncomingFetchJob;
+    if (_.isString(jobInfo)) {
+      return JSON.parse(jobInfo) as IncomingFetchJob;
+    }
+
+    return jobInfo as IncomingFetchJob;
   }
 
   private async getCurrentJob(
