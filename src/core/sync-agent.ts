@@ -602,6 +602,29 @@ class SyncAgent {
           );
         }
       });
+      // Check restricted mappings for license mappings (out)
+      if (this._privateSettings.account_licenses_attribute) {
+        const allowedPlanhatLicensesOut = _.keys(PLANHAT_PROPERTIES.LICENSES);
+        _.forEach(
+          this._privateSettings.account_licenses_attributes_outbound,
+          map => {
+            if (
+              map.hull_field_name !== undefined &&
+              map.service_field_name !== undefined &&
+              !allowedPlanhatLicensesOut.includes(map.service_field_name)
+            ) {
+              status.status = "error";
+              status.messages.push(
+                STATUS_INVALID_MAPPING_PLANHAT(
+                  map.hull_field_name,
+                  map.service_field_name,
+                  "Licenses attributes mapping",
+                ),
+              );
+            }
+          },
+        );
+      }
     }
 
     if (!_.isNil(this._hullClient)) {

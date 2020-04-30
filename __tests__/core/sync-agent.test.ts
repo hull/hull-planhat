@@ -306,6 +306,21 @@ describe("SyncAgent", () => {
         "connector.private_settings.account_attributes_outbound",
         mappingsOutCompany,
       );
+      const mappingsOutLicenses = [
+        { hull_field_name: undefined, service_field_name: "Foo" },
+        { hull_field_name: "currency", service_field_name: undefined },
+        { hull_field_name: "currency", service_field_name: "Currency" }, // <- this is invalid
+      ];
+      _.set(
+        basePayload,
+        "connector.private_settings.account_licenses_attributes_outbound",
+        mappingsOutLicenses,
+      );
+      _.set(
+        basePayload,
+        "connector.private_settings.account_licenses_attribute",
+        "ph_licenses",
+      );
 
       ctxMock.connector = basePayload.connector;
       ctxMock.ship = basePayload.connector;
@@ -329,6 +344,11 @@ describe("SyncAgent", () => {
             "name",
             "Name",
             "Account attributes mapping",
+          ),
+          STATUS_INVALID_MAPPING_PLANHAT(
+            "currency",
+            "Currency",
+            "Licenses attributes mapping",
           ),
         ],
       };
