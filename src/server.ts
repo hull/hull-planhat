@@ -5,6 +5,7 @@ import bodyParser from "body-parser";
 import { smartNotifierHandler } from "hull/lib/utils";
 import { createContainer, asValue, asClass } from "awilix";
 import { ClientOpts } from "redis";
+import { createLogger, LoggerOptions, format, transports } from "winston";
 import actions from "./actions";
 import authMiddleware from "./utils/auth-middleware";
 import redisMiddlewareFactory from "./utils/redis-middleware";
@@ -14,6 +15,53 @@ const server = (app: Application): Application => {
   // DI Container
   const container = createContainer();
 
+  // Instantiate the global logger
+  const loggerOptions: LoggerOptions = {
+    level: process.env.LOG_LEVEL || "error",
+    format: format.combine(
+      format.colorize({ all: true }),
+      format.timestamp(),
+      format.align(),
+    ),
+    defaultMeta: {
+      service: process.env.LOG_SERVICENAME || "hull-planhat",
+    },
+  };
+  // Add console as transport since we don't use a dedicated transport
+  // but rely on the OS to ship logs
+  loggerOptions.transports = [
+    new transports.Console({
+      format: format.combine(
+        format.colorize({ all: true }),
+        format.timestamp(),
+        format.align(),
+        format.printf(info => {
+          const { timestamp, level, message, ...args } = info;
+          const { meta } = info;
+          let metaStructured = "";
+
+          if (meta) {
+            metaStructured = `${meta.component}#${meta.method}`;
+            delete args.meta;
+          }
+
+          let appInfo = "";
+
+          if (args.service) {
+            appInfo = args.service;
+            delete args.service;
+          }
+
+          return `[${appInfo}]  ${timestamp} | ${level} | ${metaStructured} |${message} ${
+            Object.keys(args).length > 0 ? JSON.stringify(args, null, 2) : ""
+          }`;
+        }),
+      ),
+    }),
+  ];
+
+  const globalLogger = createLogger(loggerOptions);
+
   // DI for Redis
   const redisClientOpts: ClientOpts = {
     url: process.env.REDIS_URL,
@@ -22,7 +70,7 @@ const server = (app: Application): Application => {
   container.register({
     redisClient: asClass(ConnectorRedisClient).singleton(),
     redisClientOpts: asValue(redisClientOpts),
-    logger: asValue(console),
+    logger: asValue(globalLogger),
   });
 
   // Hull platform handler endpoints
@@ -130,8 +178,7 @@ const server = (app: Application): Application => {
 
   // Dispose the container when the server closes
   app.on("close", () => {
-    // eslint-disable-next-line no-console
-    console.log("Shutting down application...");
+    globalLogger.debug("Shutting down application on CLOSE...");
     try {
       const redisClient = container.resolve(
         "redisClient",
@@ -143,8 +190,7 @@ const server = (app: Application): Application => {
   });
 
   process.on("SIGINT", () => {
-    // eslint-disable-next-line no-console
-    console.log("Shutting down application on SIGINT...");
+    globalLogger.debug("Shutting down application on SIGINT...");
     if (!container) {
       return;
     }
@@ -153,8 +199,7 @@ const server = (app: Application): Application => {
         "redisClient",
       ) as ConnectorRedisClient;
       redisClient.end();
-      // eslint-disable-next-line no-console
-      console.log("Terminated Redis clients.");
+      globalLogger.debug("Terminated Redis clients.");
     } finally {
       container.dispose();
     }

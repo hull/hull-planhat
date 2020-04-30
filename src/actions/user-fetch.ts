@@ -14,8 +14,6 @@ export const userFetchFactory = (
       await syncAgent.fetchIncoming("endusers");
       return Promise.resolve(true);
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log(">>> Enduser fetch failed", error);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if ((req as any).hull && (req as any).hull.client) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

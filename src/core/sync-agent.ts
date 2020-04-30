@@ -287,7 +287,6 @@ class SyncAgent {
       },
     );
 
-    // console.log(">>> ENVELOPES:", envelopesValidated, envelopesInvalidated);
     // Process all events and track them in Planhat
     let eventMessages: IHullUserUpdateMessage[] = _.map(
       envelopesValidated,
@@ -455,13 +454,11 @@ class SyncAgent {
               const updateResult = await this._serviceClient.updateCompany(
                 envelope.serviceObject as IPlanhatCompany,
               );
-              const outgoingRes = await this.handleOutgoingResult(
+              await this.handleOutgoingResult(
                 envelope,
                 updateResult,
                 "account",
               );
-              // eslint-disable-next-line no-console
-              console.log(outgoingRes);
             } else {
               this._hullClient
                 .asAccount(envelope.msg.account as IHullAccountClaims)
@@ -514,8 +511,10 @@ class SyncAgent {
         },
       );
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log(">>> ERROR", error);
+      this._hullClient.logger.error("outgoing.account.error", {
+        message: "Unhandled error when synchronizing accounts to Planhat.",
+        details: error,
+      });
     }
 
     return Promise.resolve(true);
@@ -947,9 +946,6 @@ class SyncAgent {
 
     const redisResult = await redisClnt.set(cacheKey, JSON.stringify(jobInfo));
 
-    // eslint-disable-next-line no-console
-    console.log(redisResult);
-
     return redisResult;
   }
 
@@ -965,9 +961,6 @@ class SyncAgent {
 
     const redisResult = await redisClnt.set(cacheKey, JSON.stringify(jobInfo));
 
-    // eslint-disable-next-line no-console
-    console.log(redisResult);
-
     return redisResult;
   }
 
@@ -981,9 +974,6 @@ class SyncAgent {
     const cacheKey = `${objectType}_${connectorId}_currentjob`;
 
     const redisResult = await redisClnt.delete(cacheKey);
-
-    // eslint-disable-next-line no-console
-    console.log(redisResult);
 
     return redisResult;
   }

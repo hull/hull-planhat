@@ -503,11 +503,6 @@ class MappingUtil {
         undefined ||
       this.connectorSettings.account_licenses_attributes_outbound === []
     ) {
-      // eslint-disable-next-line no-console
-      console.log(
-        ">>> MAP SKIP: Incomplete mappings for licenses",
-        this.connectorSettings,
-      );
       return [];
     }
 
@@ -518,11 +513,6 @@ class MappingUtil {
         undefined,
       ) === undefined
     ) {
-      // eslint-disable-next-line no-console
-      console.log(
-        ">>> MAP SKIP: Account has no license attribute",
-        this.connectorSettings,
-      );
       return [];
     }
 
@@ -532,12 +522,6 @@ class MappingUtil {
     );
 
     if (!_.isArray(hullLicenses)) {
-      // eslint-disable-next-line no-console
-      console.log(
-        ">>> MAP SKIP: Account license attribute is no array",
-        this.connectorSettings,
-        hullLicenses,
-      );
       return [];
     }
 
