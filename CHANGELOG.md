@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.1.7 [BETA]
+## Version 0.1.7
 
 - [bugfix] Exclude field `createDate` from update detection in `PatchUtil`
 - [feature] Add status endpoint for Hull platform
