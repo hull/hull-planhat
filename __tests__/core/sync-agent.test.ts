@@ -11,7 +11,10 @@ import {
   STATUS_INVALID_MAPPING_PLANHAT,
   STATUS_INCOMPLETE_LICENSEMAP_ITEMMAPPINGS,
   STATUS_INCOMPLETE_LICENSEMAP_ACCOUNTATTRIBUTE,
+  STATUS_REQUIRED_MAPPING_MISSING,
+  STATUS_REQUIRED_MAPPING_MISSING_ALT,
 } from "../../src/core/common-constants";
+import PLANHAT_PROPERTIES from "../../src/core/planhat-properties";
 
 /* eslint-disable global-require, import/no-dynamic-require, @typescript-eslint/no-explicit-any */
 describe("SyncAgent", () => {
@@ -288,7 +291,9 @@ describe("SyncAgent", () => {
       _.set(basePayload, "connector.private_settings.tenant_id", "tenant1234");
       const mappingsOutContact = [
         { hull_field_name: undefined, service_field_name: "Foo" },
-        { hull_field_name: "name", service_field_name: undefined },
+        { hull_field_name: "lastName", service_field_name: undefined },
+        { hull_field_name: "name", service_field_name: "name" },
+        { hull_field_name: "external_id", service_field_name: "externalId" },
         { hull_field_name: "email", service_field_name: "Email" }, // <- this is invalid
       ];
       _.set(
@@ -298,8 +303,9 @@ describe("SyncAgent", () => {
       );
       const mappingsOutCompany = [
         { hull_field_name: undefined, service_field_name: "Foo" },
-        { hull_field_name: "name", service_field_name: undefined },
-        { hull_field_name: "name", service_field_name: "Name" }, // <- this is invalid
+        { hull_field_name: "slug", service_field_name: undefined },
+        { hull_field_name: "name", service_field_name: "name" },
+        { hull_field_name: "co_owner", service_field_name: "co_owner" }, // <- this is invalid
       ];
       _.set(
         basePayload,
@@ -309,6 +315,10 @@ describe("SyncAgent", () => {
       const mappingsOutLicenses = [
         { hull_field_name: undefined, service_field_name: "Foo" },
         { hull_field_name: "currency", service_field_name: undefined },
+        { hull_field_name: "currency", service_field_name: "_currency" },
+        { hull_field_name: "id", service_field_name: "externalId" },
+        { hull_field_name: "start_date", service_field_name: "fromDate" },
+        { hull_field_name: "mrr", service_field_name: "mrr" },
         { hull_field_name: "currency", service_field_name: "Currency" }, // <- this is invalid
       ];
       _.set(
@@ -341,8 +351,8 @@ describe("SyncAgent", () => {
             "User attributes mapping",
           ),
           STATUS_INVALID_MAPPING_PLANHAT(
-            "name",
-            "Name",
+            "co_owner",
+            "co_owner",
             "Account attributes mapping",
           ),
           STATUS_INVALID_MAPPING_PLANHAT(
@@ -352,6 +362,215 @@ describe("SyncAgent", () => {
           ),
         ],
       };
+      const actual = await syncAgent.determineConnectorStatus();
+      expect(actual).toEqual(expected);
+    });
+
+    it("should return status 'error' if connector has required mappings outbound missing for endusers", async () => {
+      const basePayload = _.cloneDeep(
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        require("../_data/user-update-message.json"),
+      );
+      _.set(
+        basePayload,
+        "connector.private_settings.personal_acccess_token",
+        "yt430yh8tt9rmw",
+      );
+      _.set(basePayload, "connector.private_settings.tenant_id", "tenant1234");
+      // Set all required fields for endusers:
+      // - Either externalId or email
+      // - Either name or fistName and lastName
+      const mappingsOutContact: any[] = [];
+      _.set(
+        basePayload,
+        "connector.private_settings.contact_attributes_outbound",
+        mappingsOutContact,
+      );
+      const mappingsOutCompany: any[] = [
+        { hull_field_name: "name", service_field_name: "name" },
+      ];
+      _.set(
+        basePayload,
+        "connector.private_settings.account_attributes_outbound",
+        mappingsOutCompany,
+      );
+      // Licenses, if not configured, has no required ones, so leave unconfigured
+      _.unset(
+        basePayload,
+        "connector.private_settings.account_licenses_attribute",
+      );
+
+      ctxMock.connector = basePayload.connector;
+      ctxMock.ship = basePayload.connector;
+
+      const syncAgent = new SyncAgent(
+        ctxMock.client,
+        ctxMock.connector,
+        ctxMock.metric,
+        container,
+      );
+
+      const expected: ConnectorStatusResponse = {
+        status: "error",
+        messages: [
+          STATUS_REQUIRED_MAPPING_MISSING_ALT(
+            PLANHAT_PROPERTIES.CONTACTS.externalId,
+            PLANHAT_PROPERTIES.CONTACTS.email,
+            "User attributes mapping",
+          ),
+          STATUS_REQUIRED_MAPPING_MISSING_ALT(
+            PLANHAT_PROPERTIES.CONTACTS.name,
+            `${PLANHAT_PROPERTIES.CONTACTS.firstName} and ${PLANHAT_PROPERTIES.CONTACTS.lastName}`,
+            "User attributes mapping",
+          ),
+        ],
+      };
+
+      const actual = await syncAgent.determineConnectorStatus();
+      expect(actual).toEqual(expected);
+    });
+
+    it("should return status 'error' if connector has required mappings outbound missing for companies", async () => {
+      const basePayload = _.cloneDeep(
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        require("../_data/user-update-message.json"),
+      );
+      _.set(
+        basePayload,
+        "connector.private_settings.personal_acccess_token",
+        "yt430yh8tt9rmw",
+      );
+      _.set(basePayload, "connector.private_settings.tenant_id", "tenant1234");
+      // Set all required fields for endusers:
+      // - Either externalId or email
+      // - Either name or fistName and lastName
+      const mappingsOutContact = [
+        { hull_field_name: "external_id", service_field_name: "externalId" },
+        { hull_field_name: "name", service_field_name: "name" },
+      ];
+      _.set(
+        basePayload,
+        "connector.private_settings.contact_attributes_outbound",
+        mappingsOutContact,
+      );
+      // Required for company is 'name'
+      const mappingsOutCompany: any[] = [];
+      _.set(
+        basePayload,
+        "connector.private_settings.account_attributes_outbound",
+        mappingsOutCompany,
+      );
+      // Licenses, if not configured, has no required ones, so leave unconfigured
+      _.unset(
+        basePayload,
+        "connector.private_settings.account_licenses_attribute",
+      );
+
+      ctxMock.connector = basePayload.connector;
+      ctxMock.ship = basePayload.connector;
+
+      const syncAgent = new SyncAgent(
+        ctxMock.client,
+        ctxMock.connector,
+        ctxMock.metric,
+        container,
+      );
+
+      const expected: ConnectorStatusResponse = {
+        status: "error",
+        messages: [
+          STATUS_REQUIRED_MAPPING_MISSING(
+            "Name (*)",
+            "Account attributes mapping",
+          ),
+        ],
+      };
+
+      const actual = await syncAgent.determineConnectorStatus();
+      expect(actual).toEqual(expected);
+    });
+
+    it("should return status 'error' if connector has required mappings outbound missing for licenses", async () => {
+      const basePayload = _.cloneDeep(
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        require("../_data/user-update-message.json"),
+      );
+      _.set(
+        basePayload,
+        "connector.private_settings.personal_acccess_token",
+        "yt430yh8tt9rmw",
+      );
+      _.set(basePayload, "connector.private_settings.tenant_id", "tenant1234");
+      // Set all required fields for endusers:
+      // - Either externalId or email
+      // - Either name or fistName and lastName
+      const mappingsOutContact = [
+        { hull_field_name: "external_id", service_field_name: "externalId" },
+        { hull_field_name: "name", service_field_name: "name" },
+      ];
+      _.set(
+        basePayload,
+        "connector.private_settings.contact_attributes_outbound",
+        mappingsOutContact,
+      );
+      // Set all required fields for companies:
+      const mappingsOutCompany: any[] = [
+        { hull_field_name: "name", service_field_name: "name" },
+      ];
+      _.set(
+        basePayload,
+        "connector.private_settings.account_attributes_outbound",
+        mappingsOutCompany,
+      );
+      // Licenses, if not configured, has no required ones, so leave unconfigured
+      _.set(
+        basePayload,
+        "connector.private_settings.account_licenses_attribute",
+        "unified.ph_licenses",
+      );
+      const mapingsLicenses: any[] = [
+        { hull_field_name: "license_name", service_field_name: "product" },
+      ];
+      _.set(
+        basePayload,
+        "connector.private_settings.account_licenses_attributes_outbound",
+        mapingsLicenses,
+      );
+
+      ctxMock.connector = basePayload.connector;
+      ctxMock.ship = basePayload.connector;
+
+      const syncAgent = new SyncAgent(
+        ctxMock.client,
+        ctxMock.connector,
+        ctxMock.metric,
+        container,
+      );
+
+      const expected: ConnectorStatusResponse = {
+        status: "error",
+        messages: [
+          STATUS_REQUIRED_MAPPING_MISSING(
+            PLANHAT_PROPERTIES.LICENSES.externalId,
+            "Licenses attributes mapping",
+          ),
+          STATUS_REQUIRED_MAPPING_MISSING(
+            // eslint-disable-next-line no-underscore-dangle
+            PLANHAT_PROPERTIES.LICENSES._currency,
+            "Licenses attributes mapping",
+          ),
+          STATUS_REQUIRED_MAPPING_MISSING(
+            PLANHAT_PROPERTIES.LICENSES.fromDate,
+            "Licenses attributes mapping",
+          ),
+          STATUS_REQUIRED_MAPPING_MISSING_ALT(
+            PLANHAT_PROPERTIES.LICENSES.mrr,
+            PLANHAT_PROPERTIES.LICENSES.value,
+            "Licenses attributes mapping",
+          ),
+        ],
+      };
+
       const actual = await syncAgent.determineConnectorStatus();
       expect(actual).toEqual(expected);
     });

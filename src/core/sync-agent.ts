@@ -36,6 +36,8 @@ import {
   STATUS_INVALID_MAPPING_PLANHAT,
   STATUS_INCOMPLETE_LICENSEMAP_ITEMMAPPINGS,
   STATUS_INCOMPLETE_LICENSEMAP_ACCOUNTATTRIBUTE,
+  STATUS_REQUIRED_MAPPING_MISSING,
+  STATUS_REQUIRED_MAPPING_MISSING_ALT,
 } from "./common-constants";
 import PLANHAT_PROPERTIES from "./planhat-properties";
 
@@ -624,6 +626,128 @@ class SyncAgent {
             }
           },
         );
+      }
+      // Check required attributes
+      // > Endusers
+      const mappedAttributesEnduser = _.compact(
+        _.map(this._privateSettings.contact_attributes_outbound, m => {
+          if (m.service_field_name && m.hull_field_name) {
+            return m.service_field_name;
+          }
+          return undefined;
+        }),
+      );
+      if (
+        !mappedAttributesEnduser.includes("externalId") &&
+        !mappedAttributesEnduser.includes("email")
+      ) {
+        status.status = "error";
+        status.messages.push(
+          STATUS_REQUIRED_MAPPING_MISSING_ALT(
+            PLANHAT_PROPERTIES.CONTACTS.externalId,
+            PLANHAT_PROPERTIES.CONTACTS.email,
+            "User attributes mapping",
+          ),
+        );
+      }
+
+      if (
+        !(
+          mappedAttributesEnduser.includes("name") ||
+          (mappedAttributesEnduser.includes("firstName") &&
+            mappedAttributesEnduser.includes("lastName"))
+        )
+      ) {
+        status.status = "error";
+        status.messages.push(
+          STATUS_REQUIRED_MAPPING_MISSING_ALT(
+            PLANHAT_PROPERTIES.CONTACTS.name,
+            `${PLANHAT_PROPERTIES.CONTACTS.firstName} and ${PLANHAT_PROPERTIES.CONTACTS.lastName}`,
+            "User attributes mapping",
+          ),
+        );
+      }
+      // > Companies
+      const requiredAttributesCompany = ["name"];
+      const mappedAttributesCompany = _.compact(
+        _.map(this._privateSettings.account_attributes_outbound, m => {
+          if (m.service_field_name && m.hull_field_name) {
+            return m.service_field_name;
+          }
+          return undefined;
+        }),
+      );
+      const missingRequiredAttributesCompany = _.difference(
+        requiredAttributesCompany,
+        mappedAttributesCompany,
+      );
+      if (missingRequiredAttributesCompany.length !== 0) {
+        // Loop through them
+        _.forEach(missingRequiredAttributesCompany, attr => {
+          if (attr) {
+            status.status = "error";
+            status.messages.push(
+              STATUS_REQUIRED_MAPPING_MISSING(
+                _.get(PLANHAT_PROPERTIES.COMPANIES, attr),
+                "Account attributes mapping",
+              ),
+            );
+          }
+        });
+      }
+      // > Licenses
+      if (
+        this._privateSettings.account_licenses_attribute &&
+        this._privateSettings.account_licenses_attributes_outbound &&
+        this._privateSettings.account_licenses_attributes_outbound.length > 0
+      ) {
+        const requiredAttributesLicenses = [
+          "externalId",
+          "_currency",
+          "fromDate",
+        ];
+        const mappedAttributesLicenses = _.compact(
+          _.map(
+            this._privateSettings.account_licenses_attributes_outbound,
+            m => {
+              if (m.service_field_name && m.hull_field_name) {
+                return m.service_field_name;
+              }
+              return undefined;
+            },
+          ),
+        );
+        const missingRequiredAttributesLicenses = _.difference(
+          requiredAttributesLicenses,
+          mappedAttributesLicenses,
+        );
+        if (missingRequiredAttributesLicenses.length !== 0) {
+          // Loop through them
+          _.forEach(missingRequiredAttributesLicenses, attr => {
+            if (attr) {
+              status.status = "error";
+              status.messages.push(
+                STATUS_REQUIRED_MAPPING_MISSING(
+                  _.get(PLANHAT_PROPERTIES.LICENSES, attr),
+                  "Licenses attributes mapping",
+                ),
+              );
+            }
+          });
+        }
+        if (
+          !mappedAttributesLicenses.includes("mrr") &&
+          !mappedAttributesLicenses.includes("value")
+        ) {
+          status.status = "error";
+          status.messages.push(
+            STATUS_REQUIRED_MAPPING_MISSING_ALT(
+              PLANHAT_PROPERTIES.LICENSES.mrr,
+              PLANHAT_PROPERTIES.LICENSES.value,
+              "Licenses attributes mapping",
+            ),
+          );
+        }
       }
     }
 
