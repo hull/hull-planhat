@@ -1,0 +1,35 @@
+[
+  {
+    "_id": "5e26e38abf07307b89e48d59",
+    "sharedNotificationsPrefs": {
+      "enabled": [],
+      "disabled": [],
+      "disabledEvents": []
+    },
+    "otherEmails": [],
+    "featured": true,
+    "tags": ["DM", "Main User"],
+    "personas": [],
+    "npsUnsubscribed": false,
+    "beatTrend": 0,
+    "beats": 0,
+    "convs14": 0,
+    "convsTotal": 0,
+    "beatsTotal": 0,
+    "experience": 0,
+    "email": "toaonxe75e@gmail.com",
+    "firstName": "first-toaonxe75e",
+    "lastName": "last-toaonxe75e",
+    "companyId": "5e15901391025d870eec1236",
+    "companyName": "Test Company",
+    "externalId": "toaonxe75e",
+    "position": "CIO",
+    "phone": "0037128280459",
+    "name": "first-toaonxe75e last-toaonxe75e",
+    "createDate": "2020-01-21T11:42:02.562Z",
+    "relatedEndusers": [],
+    "updatedAt": "2020-01-21T11:42:02.565Z",
+    "emailMd5": "7c492dbb72d1aaca330e82e78972ce51",
+    "__v": 0
+  }
+]

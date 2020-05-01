@@ -1,25 +1,39 @@
-import _ from "lodash";
 import IHullAccountUpdateMessage from "../types/account-update-message";
 import SyncAgent from "../core/sync-agent";
 
-const accountUpdateHandlerFactory = (options: any = {}): (ctx: any, messages: IHullAccountUpdateMessage[]) => Promise<any> => {
-    const {
-        flowControl = null,
-        isBatch = false
-    } = options;
-    return function accountUpdateHandler(ctx: any, messages: IHullAccountUpdateMessage[]): Promise<any> {
-        if (ctx.smartNotifierResponse && flowControl) {
-            ctx.smartNotifierResponse.setFlowControl(flowControl);
-        }
-        
-        const agent = new SyncAgent(ctx.client, ctx.ship, ctx.metric);
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const accountUpdateHandlerFactory = (
+  options: any = {},
+): ((ctx: any, messages: IHullAccountUpdateMessage[]) => Promise<any>) => {
+  const {
+    flowControl = null,
+    isBatch = false,
+    container = undefined,
+  } = options;
+  return function accountUpdateHandler(
+    ctx: any,
+    messages: IHullAccountUpdateMessage[],
+  ): Promise<any> {
+    if (ctx.smartNotifierResponse && flowControl) {
+      ctx.smartNotifierResponse.setFlowControl(flowControl);
+    }
 
-        if (messages.length > 0) {
-            return agent.sendAccountMessages(messages, isBatch);
-        }
+    try {
+      const agent = new SyncAgent(ctx.client, ctx.ship, ctx.metric, container);
 
-        return Promise.resolve();
-    };
-}
+      if (messages.length > 0) {
+        return agent.sendAccountMessages(messages, isBatch);
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(error);
+    }
 
+    return Promise.resolve();
+  };
+};
+
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
+// eslint-disable-next-line import/no-default-export
 export default accountUpdateHandlerFactory;

@@ -1,311 +1,266 @@
 {
-    "connector": {
-        "tags": [],
-        "source_url": "https://planhat.hullconnectors.net/",
-        "private_settings": {
-            "api_prefix": "api",
-            "contact_synchronized_segments": [],
-            "contact_events": [],
-            "contact_attributes_outbound": [
-                {
-                    "hull_field_name": "account.external_id",
-                    "service_field_name": "companyId"
-                },
-                {
-                    "hull_field_name": "name",
-                    "service_field_name": "name"
-                },
-                {
-                    "hull_field_name": "email",
-                    "service_field_name": "email"
-                }
-            ],
-            "account_synchronized_segments": [],
-            "account_require_externalid": false,
-            "account_attributes_outbound": [
-                {
-                    "hull_field_name": "name",
-                    "service_field_name": "name"
-                }
-            ]
-        },
-        "index": "https://planhat.hullconnectors.net/",
-        "name": "planhat.hullconnectors.net",
-        "extra": {},
-        "settings": {},
-        "type": "ship",
-        "manifest": {
-            "description": "Synchronize Hull accounts with Planhat and forward user events.",
-            "tags": [
-                "outgoing",
-                "oneColumn",
-                "batch",
-                "smart-notifier"
-            ],
-            "private_settings": [
-                {
-                    "name": "heading_connectivity",
-                    "type": "string",
-                    "format": "title",
-                    "title": "Planhat Connectivity"
-                },
-                {
-                    "name": "personal_acccess_token",
-                    "title": "Personal Access Token",
-                    "type": "string"
-                },
-                {
-                    "name": "api_prefix",
-                    "title": "API Prefix",
-                    "type": "string",
-                    "default": "api"
-                },
-                {
-                    "name": "heading_user_configuration",
-                    "type": "string",
-                    "format": "title",
-                    "title": "User Configuration"
-                },
-                {
-                    "name": "contact_synchronized_segments",
-                    "title": "Contact Filter",
-                    "description": "Send users and events as contacts and events when they belong to one of these segments to Planhat. Only users in the specified segments are sent.",
-                    "type": "array",
-                    "format": "segment",
-                    "items": {
-                        "type": "string"
-                    },
-                    "default": []
-                },
-                {
-                    "name": "contact_events",
-                    "title": "Hull Events to send to Planhat",
-                    "format": "event",
-                    "type": "array",
-                    "default": []
-                },
-                {
-                    "name": "contact_attributes_outbound",
-                    "title": "List of Standard Contact fields to send from Hull to Planhat",
-                    "type": "array",
-                    "format": "table",
-                    "default": [
-                        {
-                            "hull_field_name": "account.external_id",
-                            "service_field_name": "Company id (*)"
-                        },
-                        {
-                            "hull_field_name": "name",
-                            "service_field_name": "Full name"
-                        },
-                        {
-                            "hull_field_name": "email",
-                            "service_field_name": "Email"
-                        }
-                    ],
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "hull_field_name": {
-                                "type": "string",
-                                "format": "trait",
-                                "title": "Hull Attribute"
-                            },
-                            "service_field_name": {
-                                "type": "string",
-                                "title": "Planhat Property",
-                                "format": "select",
-                                "options": {
-                                    "loadOptions": "/schema/contacts"
-                                }
-                            }
-                        },
-                        "required": [
-                            "hull_field_name",
-                            "service_field_name"
-                        ]
-                    }
-                },
-                {
-                    "name": "heading_account_configuration",
-                    "type": "string",
-                    "format": "title",
-                    "title": "Account Configuration"
-                },
-                {
-                    "name": "account_synchronized_segments",
-                    "title": "Account Filter",
-                    "description": "Send accounts when they belong to one of these segments to Planhat. Only accounts in the specified segments are sent.",
-                    "type": "array",
-                    "format": "accountSegment",
-                    "default": []
-                },
-                {
-                    "name": "account_require_externalid",
-                    "title": "Require `external_id` to synchronize?",
-                    "type": "boolean",
-                    "default": false
-                },
-                {
-                    "name": "account_attributes_outbound",
-                    "title": "List of Standard Account attributes to push to Planhat",
-                    "type": "array",
-                    "format": "table",
-                    "default": [
-                        {
-                            "hull_field_name": "name",
-                            "service_field_name": "Name"
-                        }
-                    ],
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "hull_field_name": {
-                                "type": "string",
-                                "format": "accountTrait",
-                                "title": "Hull Attribute"
-                            },
-                            "service_field_name": {
-                                "type": "string",
-                                "title": "Planhat Property",
-                                "format": "select",
-                                "options": {
-                                    "loadOptions": "/schema/companies"
-                                }
-                            }
-                        },
-                        "required": [
-                            "hull_field_name",
-                            "service_field_name"
-                        ]
-                    }
-                }
-            ],
-            "tabs": [],
-            "name": "Planhat [BETA]",
-            "settings": [],
-            "subscriptions": [
-                {
-                    "url": "/smart-notifier"
-                }
-            ],
-            "ui": false,
-            "readme": "readme.md",
-            "schedules": [],
-            "version": "0.1.0"
-        },
-        "secret": "bla13690ec7f5944a0fa57erTopSecretFoo",
-        "updated_at": "2019-07-10T00:54:54Z",
-        "status": {
-            "updated_at": "2019-07-10T14:33:15Z",
-            "name": "planhat.hullconnectors.net",
-            "id": "70e40ec7f5944a0fa57ee9dae41fc8d6"
-        },
-        "id": "70e40ec7f5944a0fa57ee9dae41fc8d6",
-        "picture": null,
-        "homepage_url": "https://dummy123.hullapp.io/ships/70e40ec7f5944a0fa57ee9dae41fc8d6",
-        "manifest_url": "https://planhat.hullconnectors.net/manifest.json",
-        "created_at": "2019-07-10T00:54:53Z"
-    },
-    "accounts_segments": [],
-    "channel": "user:update",
-    "is_export": false,
-    "segments": [],
-    "messages": [
+  "connector": {
+    "tags": [],
+    "source_url": "https://planhat.hullconnectors.net/",
+    "private_settings": {
+      "api_prefix": "api",
+      "contact_synchronized_segments": [],
+      "contact_events": [],
+      "contact_attributes_outbound": [
         {
-            "user": {
-                "external_id": "test-user-hexoz5",
-                "id": "5d25f6ce0f6b1168e10158cb",
-                "email": "test1@hull.io",
-                "name": "John Miller",
-                "domain": "hull.io",
-                "last_name": "Miller",
-                "indexed_at": "2019-07-10T14:33:24+00:00",
-                "first_name": "John",
-                "created_at": "2019-07-10T14:31:42Z",
-                "is_approved": false,
-                "traits_position": "Test Dummy"
-            },
-            "changes": {
-                "is_new": true,
-                "user": {
-                    "external_id": [
-                        null,
-                        "test-user-hexoz5"
-                    ],
-                    "id": [
-                        null,
-                        "5d25f6ce0f6b1168e10158cb"
-                    ],
-                    "email": [
-                        null,
-                        "test1@hull.io"
-                    ],
-                    "name": [
-                        null,
-                        "John Miller"
-                    ],
-                    "domain": [
-                        null,
-                        "hull.io"
-                    ],
-                    "last_name": [
-                        null,
-                        "Miller"
-                    ],
-                    "first_name": [
-                        null,
-                        "John"
-                    ],
-                    "created_at": [
-                        null,
-                        "2019-07-10T14:31:42Z"
-                    ],
-                    "is_approved": [
-                        null,
-                        false
-                    ],
-                    "traits_position": [
-                        null,
-                        "Test Dummy"
-                    ]
-                },
-                "account": {},
-                "segments": {},
-                "account_segments": {}
-            },
-            "account": {},
-            "segments": [],
-            "events": [],
-            "account_segments": [],
-            "update_id": "dummy123.hullapp.io:std:0",
-            "message_id": "32eeb31334d67c96098756c839ae0679aa1c07d9"
+          "hull_field_name": "name",
+          "service_field_name": "name"
+        },
+        {
+          "hull_field_name": "email",
+          "service_field_name": "email"
         }
-    ],
-    "notification_id": "4ce19364-13a4-4479-82d8-5eb59fec7aaf",
-    "kraken": {
-        "retries": 0,
-        "checkpoints": {
-            "kraken.lane/commands": 4,
-            "kraken.lane/accounts": 0,
-            "kraken.lane/fast": 0,
-            "kraken.lane/std": 0
-        },
-        "flow-control": {
-            "warning": null,
-            "max-delay": 1000,
-            "min-delay": 0,
-            "max-messages": 100,
-            "type": "next"
-        },
-        "estimated-optimal-shipment-size": 10,
-        "update-ids": [
-            "dummy123.hullapp.io:std:0"
-        ]
+      ],
+      "contact_custom_attributes_outbound": [],
+      "account_synchronized_segments": [],
+      "account_require_externalid": false,
+      "account_attributes_outbound": [
+        {
+          "hull_field_name": "name",
+          "service_field_name": "Name (*)"
+        }
+      ],
+      "account_custom_attributes_outbound": []
     },
-    "configuration": {
-        "id": "70e40ec7f5944a0fa57ee9dae41fc8d6",
-        "organization": "dummy123.hullapp.io",
-        "secret": "bla13690ec7f5944a0fa57erTopSecretFoo"
+    "index": "https://planhat.hullconnectors.net/",
+    "name": "planhat.hullconnectors.net",
+    "extra": {},
+    "settings": {},
+    "type": "ship",
+    "manifest": {
+      "description": "Synchronize Hull accounts with Planhat and forward user events.",
+      "tags": ["outgoing", "oneColumn", "batch", "smart-notifier"],
+      "private_settings": [
+        {
+          "name": "heading_connectivity",
+          "type": "string",
+          "format": "title",
+          "title": "Planhat Connectivity"
+        },
+        {
+          "name": "personal_acccess_token",
+          "title": "Personal Access Token",
+          "type": "string"
+        },
+        {
+          "name": "api_prefix",
+          "title": "API Prefix",
+          "type": "string",
+          "default": "api"
+        },
+        {
+          "name": "heading_user_configuration",
+          "type": "string",
+          "format": "title",
+          "title": "User Configuration"
+        },
+        {
+          "name": "contact_synchronized_segments",
+          "title": "Contact Filter",
+          "description": "Send users and events as contacts and events when they belong to one of these segments to Planhat. Only users in the specified segments are sent.",
+          "type": "array",
+          "format": "segment",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        {
+          "name": "contact_events",
+          "title": "Hull Events to send to Planhat",
+          "format": "event",
+          "type": "array",
+          "default": []
+        },
+        {
+          "name": "contact_attributes_outbound",
+          "title": "List of Standard Contact fields to send from Hull to Planhat",
+          "type": "array",
+          "format": "table",
+          "default": [
+            {
+              "hull_field_name": "account.external_id",
+              "service_field_name": "Company id (*)"
+            },
+            {
+              "hull_field_name": "name",
+              "service_field_name": "Full name"
+            },
+            {
+              "hull_field_name": "email",
+              "service_field_name": "Email"
+            }
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "hull_field_name": {
+                "type": "string",
+                "format": "trait",
+                "title": "Hull Attribute"
+              },
+              "service_field_name": {
+                "type": "string",
+                "title": "Planhat Property",
+                "format": "select",
+                "options": {
+                  "loadOptions": "/schema/contacts"
+                }
+              }
+            },
+            "required": ["hull_field_name", "service_field_name"]
+          }
+        },
+        {
+          "name": "heading_account_configuration",
+          "type": "string",
+          "format": "title",
+          "title": "Account Configuration"
+        },
+        {
+          "name": "account_synchronized_segments",
+          "title": "Account Filter",
+          "description": "Send accounts when they belong to one of these segments to Planhat. Only accounts in the specified segments are sent.",
+          "type": "array",
+          "format": "accountSegment",
+          "default": []
+        },
+        {
+          "name": "account_require_externalid",
+          "title": "Require `external_id` to synchronize?",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "account_attributes_outbound",
+          "title": "List of Standard Account attributes to push to Planhat",
+          "type": "array",
+          "format": "table",
+          "default": [
+            {
+              "hull_field_name": "name",
+              "service_field_name": "Name"
+            }
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "hull_field_name": {
+                "type": "string",
+                "format": "accountTrait",
+                "title": "Hull Attribute"
+              },
+              "service_field_name": {
+                "type": "string",
+                "title": "Planhat Property",
+                "format": "select",
+                "options": {
+                  "loadOptions": "/schema/companies"
+                }
+              }
+            },
+            "required": ["hull_field_name", "service_field_name"]
+          }
+        }
+      ],
+      "tabs": [],
+      "name": "Planhat [BETA]",
+      "settings": [],
+      "subscriptions": [
+        {
+          "url": "/smart-notifier"
+        }
+      ],
+      "ui": false,
+      "readme": "readme.md",
+      "schedules": [],
+      "version": "0.1.0"
+    },
+    "secret": "bla13690ec7f5944a0fa57erTopSecretFoo",
+    "updated_at": "2019-07-10T00:54:54Z",
+    "status": {
+      "updated_at": "2019-07-10T14:33:15Z",
+      "name": "planhat.hullconnectors.net",
+      "id": "70e40ec7f5944a0fa57ee9dae41fc8d6"
+    },
+    "id": "70e40ec7f5944a0fa57ee9dae41fc8d6",
+    "picture": null,
+    "homepage_url": "https://dummy123.hullapp.io/ships/70e40ec7f5944a0fa57ee9dae41fc8d6",
+    "manifest_url": "https://planhat.hullconnectors.net/manifest.json",
+    "created_at": "2019-07-10T00:54:53Z"
+  },
+  "accounts_segments": [],
+  "channel": "user:update",
+  "is_export": false,
+  "segments": [],
+  "messages": [
+    {
+      "user": {
+        "external_id": "test-user-hexoz5",
+        "id": "5d25f6ce0f6b1168e10158cb",
+        "email": "test1@hull.io",
+        "name": "John Miller",
+        "domain": "hull.io",
+        "last_name": "Miller",
+        "indexed_at": "2019-07-10T14:33:24+00:00",
+        "first_name": "John",
+        "created_at": "2019-07-10T14:31:42Z",
+        "is_approved": false,
+        "traits_position": "Test Dummy"
+      },
+      "changes": {
+        "is_new": true,
+        "user": {
+          "external_id": [null, "test-user-hexoz5"],
+          "id": [null, "5d25f6ce0f6b1168e10158cb"],
+          "email": [null, "test1@hull.io"],
+          "name": [null, "John Miller"],
+          "domain": [null, "hull.io"],
+          "last_name": [null, "Miller"],
+          "first_name": [null, "John"],
+          "created_at": [null, "2019-07-10T14:31:42Z"],
+          "is_approved": [null, false],
+          "traits_position": [null, "Test Dummy"]
+        },
+        "account": {},
+        "segments": {},
+        "account_segments": {}
+      },
+      "account": {},
+      "segments": [],
+      "events": [],
+      "account_segments": [],
+      "update_id": "dummy123.hullapp.io:std:0",
+      "message_id": "32eeb31334d67c96098756c839ae0679aa1c07d9"
     }
+  ],
+  "notification_id": "4ce19364-13a4-4479-82d8-5eb59fec7aaf",
+  "kraken": {
+    "retries": 0,
+    "checkpoints": {
+      "kraken.lane/commands": 4,
+      "kraken.lane/accounts": 0,
+      "kraken.lane/fast": 0,
+      "kraken.lane/std": 0
+    },
+    "flow-control": {
+      "warning": null,
+      "max-delay": 1000,
+      "min-delay": 0,
+      "max-messages": 100,
+      "type": "next"
+    },
+    "estimated-optimal-shipment-size": 10,
+    "update-ids": ["dummy123.hullapp.io:std:0"]
+  },
+  "configuration": {
+    "id": "70e40ec7f5944a0fa57ee9dae41fc8d6",
+    "organization": "dummy123.hullapp.io",
+    "secret": "bla13690ec7f5944a0fa57erTopSecretFoo"
+  }
 }
