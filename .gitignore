@@ -67,3 +67,5 @@ typings/
 
 #VSCodeCounter
 /.VSCodeCounter
+.idea
+*.iml

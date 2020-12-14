@@ -2,7 +2,7 @@
 
 This Connector enables you to synchronize Hull users and accounts to Planhat endusers and companies and also allows you to track events in Planhat.
 
-This document was last updated on May 1, 2020. If you want to help us improve this documentation or have some feedback, please feel free to [open a GitHub issue](https://github.com/SMK1085/hull-planhat/issues/new)!
+This document was last updated on May 1, 2020. If you want to help us improve this documentation or have some feedback, please feel free to [open a GitHub issue](https://github.com/hull/hull-planhat/issues/new)!
 
 ## Getting Started
 
@@ -124,4 +124,4 @@ The Planhat API doesn't have endpoints to fetch only recently updated objects or
 
 ### Where can I find the changelog for the Connector
 
-You can find the changelog on GitHub detailing what features have been added, what bugfixes have been applied and what technical maintenance measures have been taken: [Changelog](https://github.com/SMK1085/hull-planhat/blob/master/CHANGELOG.md).
+You can find the changelog on GitHub detailing what features have been added, what bugfixes have been applied and what technical maintenance measures have been taken: [Changelog](https://github.com/hull/hull-planhat/blob/master/CHANGELOG.md).
