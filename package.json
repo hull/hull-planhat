@@ -64,7 +64,7 @@
     "express-basic-auth": "^1.2.0",
     "hull": "^0.13.20",
     "lodash": "^4.17.15",
-    "luxon": "^1.22.0",
+    "luxon": "^1.28.1",
     "newrelic": "^5.13.1",
     "redis": "^3.0.2",
     "winston": "^3.2.1"
